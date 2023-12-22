@@ -114,7 +114,7 @@ def build_full_fact(factor_level_ranges):
     
     return df
 
-def make_design_table(run_settings, csv=True):
+def make_design_table(run_settings, file="design_table.csv"):
     """
     Creates an experiment table and stores it as a CSV
     """
@@ -126,8 +126,7 @@ def make_design_table(run_settings, csv=True):
     df = fix_label_values(df, run_settings, variables = ["process_entropy",
                                                         "process_type",
                                                         "Deterministic_offset_W",
-                                                        "model_pipeline",
-                                                        "save_eventlog"])
+                                                        "model_pipeline"])
     df = df.drop("Name_fix",axis=1)
 
     # Important variables
@@ -138,8 +137,8 @@ def make_design_table(run_settings, csv=True):
     #change types
     df.statespace_size = df.statespace_size.astype(int)
 
-    if csv==True:
-        print("saved to results/design_table.csv")
-        df.to_csv("results/design_table.csv", index=False)
+    # save the design table 
+    print("saved to",file)
+    df.to_csv(file, index=False)
 
     return df

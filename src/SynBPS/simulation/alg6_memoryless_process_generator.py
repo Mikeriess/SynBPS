@@ -12,10 +12,10 @@ def Process_without_memory(D = ["a","b","c","d","e"],
     import numpy as np
     import pandas as pd
     
-    from simulation.alg2_initial_probabilities import GenerateInitialProb
-    from simulation.alg3_transition_matrix_min_entropy import Generate_transition_matrix_min_ent
-    from simulation.alg4_transition_matrix_max_entropy import Generate_transition_matrix_max_ent
-    from simulation.alg5_transition_matrix_med_entropy import Generate_transition_matrix_med_ent
+    from SynBPS.simulation.alg2_initial_probabilities import GenerateInitialProb
+    from SynBPS.simulation.alg3_transition_matrix_min_entropy import Generate_transition_matrix_min_ent
+    from SynBPS.simulation.alg4_transition_matrix_max_entropy import Generate_transition_matrix_max_ent
+    from SynBPS.simulation.alg5_transition_matrix_med_entropy import Generate_transition_matrix_med_ent
   
     #mode = ["min_entropy","max_entropy","med_entropy"][1]
     repetitions = num_traces

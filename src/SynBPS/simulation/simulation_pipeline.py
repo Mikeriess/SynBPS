@@ -6,11 +6,10 @@ Created on Tue Nov  9 13:03:27 2021
 @author: mikeriess
 """
 
-def generate_eventlog(curr_settings):
+def generate_eventlog(curr_settings, output_dir=None):
 
-    from simulation.simulation_helpers import make_D, make_workweek
+    from SynBPS.simulation.simulation_helpers import make_D, make_workweek
     
-    save_eventlog = curr_settings["save_eventlog"]
     statespace = make_D(int(curr_settings["statespace_size"]))
     number_of_traces = int(curr_settings["number_of_traces"])  
     process_entropy = curr_settings["process_entropy"] 
@@ -34,9 +33,9 @@ def generate_eventlog(curr_settings):
     import pandas as pd
     import numpy as np
     
-    from simulation.alg6_memoryless_process_generator import Process_without_memory
-    from simulation.alg7_memory_process_generator import Process_with_memory
-    from simulation.alg9_trace_durations import Generate_time_variables
+    from SynBPS.simulation.alg6_memoryless_process_generator import Process_without_memory
+    from SynBPS.simulation.alg7_memory_process_generator import Process_with_memory
+    from SynBPS.simulation.alg9_trace_durations import Generate_time_variables
     
     """
     Simulation pipeline:
@@ -181,10 +180,9 @@ def generate_eventlog(curr_settings):
     evlog_df['start_hour'] = evlog_df['start_datetime'].apply(lambda x: x.hour)
 
     
-    if save_eventlog == True:
-        evlog_df.to_csv("results/"+str(run)+"_Eventlog_"+process_entropy+"_"+process_type+".csv",
-                        index=False)
-        print("eventlog saved to:","results/"+str(run)+"_Eventlog_"+process_entropy+"_"+process_type+".csv")
+    if output_dir is not None:
+        evlog_df.to_csv(output_dir+str(run)+"_Eventlog_"+process_entropy+"_"+process_type+".csv", index=False)
+        print("eventlog saved to:",output_dir+str(run)+"_Eventlog_"+process_entropy+"_"+process_type+".csv")
     
     print("events:",len(evlog_df))
     print("ids:",len(evlog_df.caseid.unique()))

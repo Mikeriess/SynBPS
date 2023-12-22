@@ -1,0 +1,27 @@
+Metadata-Version: 2.1
+Name: SynBPS
+Version: 0.0.4
+Summary: Synthetic Business Process Simulation
+Author-email: Mike Riess <mike@riess.no>
+Project-URL: Homepage, https://github.com/pypa/sampleproject
+Project-URL: Issues, https://github.com/pypa/sampleproject/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: pomegranate==0.14.8
+Requires-Dist: numpy==1.26.2
+Requires-Dist: pandas==2.1.4
+Requires-Dist: scikit-learn>=0.22.2
+
+# SynBPS
+ Synthetic Business Process Simulation
+
+
+# Todos
+- Publish on main pypi
+- Extend HOMC to include h > 4
+- Add ML example to example notebook
+- Create a function for running experiments to abstract away for-loop

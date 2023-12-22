@@ -1,0 +1,17 @@
+url: https://packaging.python.org/en/latest/tutorials/packaging-projects/
+
+# build install and update
+python3 -m pip install --upgrade build
+
+# Generate the distribution archives:
+python3 -m build
+
+# twine install and update
+python3 -m pip install --upgrade twine
+
+# upload package with twine
+python3 -m twine upload --repository testpypi dist/*
+    username: __token__
+
+#### install package
+python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps SynBPS

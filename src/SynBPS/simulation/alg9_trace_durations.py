@@ -39,8 +39,8 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
     import numpy as np
     import pandas as pd
     
-    from simulation.duration_helpers import Generate_lambdas, Resource_offset, TimeSinceMonday, Deterministic_offset
-    from simulation.alg1_trace_arrivals import Generate_trace_arrivals
+    from SynBPS.simulation.duration_helpers import Generate_lambdas, Resource_offset, TimeSinceMonday, Deterministic_offset
+    from SynBPS.simulation.alg1_trace_arrivals import Generate_trace_arrivals
     
     
     """

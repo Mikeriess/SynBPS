@@ -890,11 +890,6 @@ def SplitAndReshape(df, y_a, y_t, y, split_criterion, prefixlength, standardize=
         from sklearn.preprocessing import StandardScaler
         sc = StandardScaler()
         
-        """
-        This is possibly unconventional, but for simplicity,
-        everything is just normalized to standard scores
-        """
-        
         #Transform Train set:
         sc.fit_transform(X_train)
         X_train = sc.transform(X_train)

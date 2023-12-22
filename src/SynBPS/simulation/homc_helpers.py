@@ -14,7 +14,7 @@ def cartesian_product(a,b):
 
 
 def combine_to_list(c):
-    from simulation.simulation_helpers import flatten
+    from SynBPS.simulation.simulation_helpers import flatten
     
     # combine the letters into one item
     newlist = []
@@ -149,7 +149,7 @@ def generate_condprob(parent, states, mode="max_entropy", n_transitions=5):
 
 def create_homc(states, h0, h=2, mode="max_entropy", n_transitions=5):
         
-    from simulation.homc_helpers import cartesian_product, combine_to_list, modify_rules, generate_condprob
+    from SynBPS.simulation.homc_helpers import cartesian_product, combine_to_list, modify_rules, generate_condprob
     
     
     ######################################
@@ -273,7 +273,7 @@ def create_homc(states, h0, h=2, mode="max_entropy", n_transitions=5):
         HOMC = MarkovChain([p0, p1, p2, p3, p4])
          
     if h > 4:
-        print("h > 4 not supported!")
+        print("h > 4 not supported yet - please create an issue on github")
         HOMC = 0
     
     return HOMC

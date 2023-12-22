@@ -4,7 +4,7 @@ def prepare_data_f_memory(log, verbose=False):
     import numpy as np
     #from helperfunctions import *
     #from simulation_pipeline import *
-    from dataprep.dataprep_helperfunctions import InitialFormatting, GetFileInfo, MakeSplitCriterion, GenerateTrainData, PadInputs, CaseData, GetCaseStats, SplitAndReshape
+    from SynBPS.dataprep.dataprep_helperfunctions import InitialFormatting, GetFileInfo, MakeSplitCriterion, GenerateTrainData, PadInputs, CaseData, GetCaseStats, SplitAndReshape
     
     """
     Subset
