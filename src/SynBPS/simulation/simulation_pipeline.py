@@ -187,3 +187,128 @@ def generate_eventlog(curr_settings, output_dir=None):
     print("events:",len(evlog_df))
     print("ids:",len(evlog_df.caseid.unique()))
     return evlog_df
+
+###########
+
+def run_experiments(training_function, eval_function, out_file="results.csv", design_table="design_table.csv"):
+    """
+    Function for running experiments to abstract away for-loop
+    """
+    
+    # Load necessary libraries
+    import pandas as pd
+    import numpy as np
+    import time
+
+    # load the design table as df
+    df = pd.read_csv(design_table)
+    
+    # Placeholder for the results
+    results = []
+
+    # Iterate over each run in the design table df
+    for run in df.index:
+        
+        """
+        Retrieving settings for experiment i
+        """
+        curr_settings = df.loc[run]
+        curr_settings["run"] = run
+        
+        """
+        If experiment is not previously performed
+        """
+        if curr_settings.Done == 0:
+            print("Run:",run)
+            start_time = time.time()
+    
+            # generate the log
+            from SynBPS.simulation.simulation_pipeline import generate_eventlog
+            log = generate_eventlog(curr_settings=curr_settings, output_dir="data/")
+    
+            # store metrics from simulated log
+            curr_settings["simuation_time_sec"] = time.time() - start_time
+            curr_settings["num_traces"] = len(log.caseid.unique())
+            curr_settings["num_events"] = len(log)
+
+            # variants and trace lengths
+            variants = []
+            tracelengths = []
+            for traceid in log.caseid.unique():
+                trace = log.loc[log.caseid == traceid]
+                
+                #tracelen
+                tracelen = len(trace)
+                tracelengths.append(tracelen)
+                
+                #variant
+                sequence = ""
+                sequence = sequence.join(trace.activity.tolist())
+                variants.append(sequence)
+    
+            # log simulated log characteristics
+            n_variants = len(set(variants))       
+            curr_settings["num_variants"] = n_variants
+            curr_settings["avg_tracelen"] = np.mean(tracelengths)
+            curr_settings["min_tracelen"] = np.min(tracelengths)
+            curr_settings["max_tracelen"] = np.max(tracelengths)
+    
+            """
+            Prepare data for modelling (memory here refers to RAM)
+            """
+
+            # Prefix-log format:
+            from SynBPS.dataprep.memory_helperfunctions import prepare_data_f_memory
+            input_data = prepare_data_f_memory(log, verbose=False)
+
+            if curr_settings["first_state_model"] == True:
+                # First-state model:
+                from SynBPS.dataprep.firststate_helperfunctions import fs_prepare_dataset_from_memory
+                input_data = fs_prepare_dataset_from_memory(input_data, sample=1.0, transform="log", first_state=True, verbose=True)
+
+            """
+            Train a model
+            """
+            
+            # X: 
+            input_data["x_train"]
+            input_data["x_test"]
+
+            # Y:
+            input_data["y_train"]
+            input_data["y_test"]
+            
+            
+            ### Custom training
+            
+            training_function()
+            
+            """
+            Evaluate the model
+            """
+
+            ### Custom evaluation
+
+            eval_function()
+            
+            """
+            Store the results
+            """
+            
+            ### Store metrics to the in curr_settings dictionary which becomes the result table
+            ### Prefixing column names is ideal for later analysis
+            
+            curr_settings["RESULT_num_events"] = len(log)
+            
+            
+            # Mark as done in the design table
+            df.loc[run,"Done"] = 1
+            df.to_csv(design_table, index=False)  
+            
+            # Store the settings of run i
+            results.append(curr_settings)
+    
+    #store results
+    experiments = pd.DataFrame(results)
+    experiments.to_csv(out_file, index=False)  
+    return results

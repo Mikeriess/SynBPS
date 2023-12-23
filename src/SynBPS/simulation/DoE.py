@@ -126,7 +126,7 @@ def make_design_table(run_settings, file="design_table.csv"):
     df = fix_label_values(df, run_settings, variables = ["process_entropy",
                                                         "process_type",
                                                         "Deterministic_offset_W",
-                                                        "model_pipeline"])
+                                                        "first_state_model"])
     df = df.drop("Name_fix",axis=1)
 
     # Important variables
