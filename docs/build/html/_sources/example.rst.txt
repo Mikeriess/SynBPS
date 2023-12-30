@@ -1,0 +1,5 @@
+.. example:
+
+Example usage
+==================================
+This page will show a step-by-step use-case of SynBPS
