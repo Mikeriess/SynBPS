@@ -86,59 +86,156 @@
 </ul>
 <section id="example-use-case">
 <h2>Example use-case<a class="headerlink" href="#example-use-case" title="Link to this heading"></a></h2>
-<ol class="arabic simple">
-<li><p>Generate design table</p></li>
-</ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Generate a design table</span>
-<span class="n">design_table</span> <span class="o">=</span> <span class="n">DesignTable</span><span class="p">()</span>
+<p>1. Generate design table
+Here the settings for the experiments can be modified in the dictionary called run_settings. Refer to the paper for more details on of each of the parameters.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">run_settings</span> <span class="o">=</span> <span class="p">{</span><span class="c1"># level of entropy: min, medium and/or max</span>
+            <span class="s2">&quot;process_entropy&quot;</span><span class="p">:[</span><span class="s2">&quot;min_entropy&quot;</span><span class="p">,</span><span class="s2">&quot;med_entropy&quot;</span><span class="p">,</span><span class="s2">&quot;max_entropy&quot;</span><span class="p">],</span>
 
-<span class="c1"># Add all settings to the design table</span>
-<span class="n">design_table</span><span class="o">.</span><span class="n">add_setting</span><span class="p">(</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">])</span>
-<span class="n">design_table</span><span class="o">.</span><span class="n">add_setting</span><span class="p">(</span><span class="s1">&#39;batch_size&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">])</span>
-<span class="n">design_table</span><span class="o">.</span><span class="n">add_setting</span><span class="p">(</span><span class="s1">&#39;epochs&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">])</span>
+            <span class="c1"># number of traces/cases in the event-log</span>
+            <span class="s2">&quot;number_of_traces&quot;</span><span class="p">:[</span><span class="mi">1000</span><span class="p">],</span>
+
+            <span class="c1"># number of activity types</span>
+            <span class="s2">&quot;statespace_size&quot;</span><span class="p">:[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
+
+            <span class="c1"># first or higher-order markov chain to represent the transitions</span>
+            <span class="s2">&quot;process_type&quot;</span><span class="p">:[</span><span class="s2">&quot;memoryless&quot;</span><span class="p">,</span><span class="s2">&quot;memory&quot;</span><span class="p">],</span>
+
+            <span class="c1"># order of HOMC - only specify this when using process with memory</span>
+            <span class="s2">&quot;process_memory&quot;</span><span class="p">:[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span>
+
+            <span class="c1"># number of transitions - only used for medium entropy (should be higher than 2 and &lt; statespace size)</span>
+            <span class="s2">&quot;med_ent_n_transitions&quot;</span><span class="p">:[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
+
+            <span class="c1"># lambda parameter of inter-arrival times</span>
+            <span class="s2">&quot;inter_arrival_time&quot;</span><span class="p">:[</span><span class="mf">1.5</span><span class="p">],</span>
+
+            <span class="c1"># lambda parameter of process noise</span>
+            <span class="s2">&quot;process_stability_scale&quot;</span><span class="p">:[</span><span class="mf">0.1</span><span class="p">],</span>
+
+            <span class="c1"># probability of agent being available</span>
+            <span class="s2">&quot;resource_availability_p&quot;</span><span class="p">:[</span><span class="mf">0.5</span><span class="p">],</span>
+
+            <span class="c1"># number of agents in the process</span>
+            <span class="s2">&quot;resource_availability_n&quot;</span><span class="p">:[</span><span class="mi">3</span><span class="p">],</span>
+
+            <span class="c1"># waiting time in full days, when no agent is available</span>
+            <span class="s2">&quot;resource_availability_m&quot;</span><span class="p">:[</span><span class="mf">0.041</span><span class="p">],</span>
+
+            <span class="c1"># variation between activity durations</span>
+            <span class="s2">&quot;activity_duration_lambda_range&quot;</span><span class="p">:[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
+
+            <span class="c1"># business hours definition: when can cases be processed? ()</span>
+            <span class="s2">&quot;Deterministic_offset_W&quot;</span><span class="p">:[</span><span class="s2">&quot;weekdays&quot;</span><span class="p">,</span> <span class="s2">&quot;all-week&quot;</span><span class="p">],</span>
+
+            <span class="c1"># time-unit for a full week: days = 7, hrs = 24*7, etc.</span>
+            <span class="s2">&quot;Deterministic_offset_u&quot;</span><span class="p">:[</span><span class="mi">7</span><span class="p">],</span>
+
+            <span class="c1"># training data format (See Verenich et al., 2019):</span>
+            <span class="c1"># True - use first event to predict total cycle-time.</span>
+            <span class="c1"># False - use Prefix-log format / each event to predict remaining cycle time.</span>
+            <span class="s2">&quot;first_state_model&quot;</span><span class="p">:[</span><span class="kc">True</span><span class="p">],</span>
+
+            <span class="c1"># offset for the timestamps used (1970 time after 1970)</span>
+            <span class="s2">&quot;datetime_offset&quot;</span><span class="p">:[</span><span class="mi">35</span><span class="p">],</span>
+
+            <span class="c1"># number of repetitions of the experiments: duplicates the experiment table (2 times here)</span>
+            <span class="s2">&quot;num_replications&quot;</span><span class="p">:</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+           <span class="p">}</span>
+
+
+<span class="c1"># import the make_design_table function to generate a full factorial experimental design table</span>
+<span class="kn">from</span> <span class="nn">SynBPS.simulation.DoE</span> <span class="kn">import</span> <span class="n">make_design_table</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">make_design_table</span><span class="p">(</span><span class="n">run_settings</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="s2">&quot;data/design_table.csv&quot;</span><span class="p">)</span>
+
+<span class="c1"># inspect the resulting design table</span>
+<span class="n">df</span>
 </pre></div>
 </div>
-<ol class="arabic simple" start="2">
-<li><p>Specify Train() and Test() functions</p></li>
-</ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define a Train() function</span>
-<span class="k">def</span> <span class="nf">Train</span><span class="p">(</span><span class="n">setting</span><span class="p">):</span>
-    <span class="c1"># Create a model with the given setting</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">create_model</span><span class="p">(</span><span class="n">setting</span><span class="p">)</span>
+<p>2. Specify Train() and Test() functions
+Before running the experiments, you need to define model training and evaluation functions.</p>
+<p>In this example we train a first state model, which is a model using only the first observed event (state) to predict to total cycle-time. The default data preparation will result in a prefix-log, which can be used to predict remaining cycle-time from every observed event in the trace.</p>
+<p>Input for the <strong>training_function</strong> is a dictionary named <strong>input_data</strong>, which contain the following:
+- x_train
+- x_test
+- y_train
+- y_test</p>
+<p>Output is an <strong>inference table</strong> containing predictions and actual target values for the test data. This table is used for analysis of the results. The <strong>eval_function</strong> also uses this table to calculate aggregated metrics.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">training_function</span><span class="p">(</span><span class="n">input_data</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;training&quot;</span><span class="p">)</span>
 
-    <span class="c1"># Train the model</span>
-    <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example model: Lasso regression</span>
+<span class="sd">    This is just an example of how to define your model in this framework.</span>
+<span class="sd">    Using this model on this data format is not advised as we break i.i.d. assumptions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># Return the trained model</span>
-    <span class="k">return</span> <span class="n">model</span>
+    <span class="c1">#retrieve model class from sklearn</span>
+    <span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">linear_model</span>
+    <span class="n">reg</span> <span class="o">=</span> <span class="n">linear_model</span><span class="o">.</span><span class="n">Lasso</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
-<span class="c1"># Define a Test() function</span>
-<span class="k">def</span> <span class="nf">Test</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">setting</span><span class="p">):</span>
-    <span class="c1"># Test the model with the given setting</span>
-    <span class="n">accuracy</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">test</span><span class="p">()</span>
+    <span class="c1">#reshape training data for this type of model</span>
+    <span class="c1">#(from: N x t x k, to: N x (t x k))</span>
+    <span class="c1">#num_obs = input_data[&quot;x_train&quot;].shape[0]</span>
+    <span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">prod</span>
+    <span class="n">flattened_dim</span> <span class="o">=</span> <span class="n">prod</span><span class="p">(</span><span class="n">input_data</span><span class="p">[</span><span class="s2">&quot;x_train&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
 
-    <span class="c1"># Return the accuracy</span>
-    <span class="k">return</span> <span class="n">accuracy</span>
+    <span class="c1">#train the regression model</span>
+    <span class="n">reg</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">input_data</span><span class="p">[</span><span class="s2">&quot;x_train&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">input_data</span><span class="p">[</span><span class="s2">&quot;x_train&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">flattened_dim</span><span class="p">)),</span> <span class="n">input_data</span><span class="p">[</span><span class="s2">&quot;y_train&quot;</span><span class="p">])</span>
+
+    <span class="c1">#predict on the test data</span>
+    <span class="n">y_pred</span> <span class="o">=</span> <span class="n">reg</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">input_data</span><span class="p">[</span><span class="s2">&quot;x_test&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">input_data</span><span class="p">[</span><span class="s2">&quot;x_test&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">flattened_dim</span><span class="p">)))</span>
+
+    <span class="c1">#get the inference table (used for analysis of the final results)</span>
+    <span class="n">inference</span> <span class="o">=</span> <span class="n">input_data</span><span class="p">[</span><span class="s2">&quot;Inference_test&quot;</span><span class="p">]</span>
+
+    <span class="c1">#add predictions to the inference table</span>
+    <span class="n">inference</span><span class="p">[</span><span class="s2">&quot;y_pred&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_pred</span>
+    <span class="k">return</span> <span class="n">inference</span>
+
+<span class="k">def</span> <span class="nf">eval_function</span><span class="p">(</span><span class="n">inference</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;evaluation&quot;</span><span class="p">)</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example evaluation: Aggregated scores</span>
+<span class="sd">    The inference table also enable the ability to make trace or prefix-level evaluations using its id variables</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">mean_squared_error</span><span class="p">,</span> <span class="n">mean_absolute_error</span><span class="p">,</span> <span class="n">r2_score</span><span class="p">,</span> <span class="n">explained_variance_score</span>
+
+    <span class="n">y</span> <span class="o">=</span> <span class="n">inference</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
+    <span class="n">y_pred</span> <span class="o">=</span> <span class="n">inference</span><span class="p">[</span><span class="s2">&quot;y_pred&quot;</span><span class="p">]</span>
+
+    <span class="n">MSE</span> <span class="o">=</span> <span class="n">mean_squared_error</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+    <span class="n">MAE</span> <span class="o">=</span> <span class="n">mean_absolute_error</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+    <span class="n">R2</span> <span class="o">=</span> <span class="n">r2_score</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+    <span class="n">EVAR</span> <span class="o">=</span> <span class="n">explained_variance_score</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+
+    <span class="c1"># the resulting metrics should be stored in a dictionary and be scalars only</span>
+    <span class="c1"># adding prefixes to column name (key) is suggested when logging many metrics</span>
+    <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;TEST_MSE&quot;</span><span class="p">:</span><span class="n">MSE</span><span class="p">,</span>
+            <span class="s2">&quot;TEST_MAE&quot;</span><span class="p">:</span><span class="n">MAE</span><span class="p">,</span>
+            <span class="s2">&quot;TEST_R2&quot;</span><span class="p">:</span><span class="n">R2</span><span class="p">,</span>
+            <span class="s2">&quot;TEST_EVAR&quot;</span><span class="p">:</span><span class="n">EVAR</span><span class="p">}</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">metrics</span>
 </pre></div>
 </div>
 <ol class="arabic simple" start="3">
 <li><p>Run experiments</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run experiments</span>
-<span class="n">results</span> <span class="o">=</span> <span class="n">design_table</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">Train</span><span class="p">,</span> <span class="n">Test</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">SynBPS.simulation.simulation_pipeline</span> <span class="kn">import</span> <span class="n">run_experiments</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">run_experiments</span><span class="p">(</span><span class="n">training_function</span><span class="p">,</span>
+                        <span class="n">eval_function</span><span class="p">,</span>
+                        <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;data/&quot;</span><span class="p">,</span>
+                        <span class="n">out_file</span><span class="o">=</span><span class="s2">&quot;results.csv&quot;</span><span class="p">,</span>
+                        <span class="n">design_table</span><span class="o">=</span><span class="s2">&quot;design_table.csv&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <ol class="arabic simple" start="4">
 <li><p>Analyze results</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get the best setting</span>
-<span class="n">best_setting</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">get_best_setting</span><span class="p">()</span>
-
-<span class="c1"># Get the best accuracy</span>
-<span class="n">best_accuracy</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">get_best_accuracy</span><span class="p">()</span>
-
-<span class="c1"># Plot the results</span>
-<span class="n">results</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># This is still a work in progress, however the results will be placed in output_dir</span>
+<span class="c1"># and can be analyzed using pandas or other tools.</span>
 </pre></div>
 </div>
 </section>
