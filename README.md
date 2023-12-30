@@ -10,8 +10,10 @@ You can install SynBPS using pip::
 
     pip install SynBPS
 
-SynBPS requires python 3.10 or higher.
+SynBPS requires python 3.9 or higher.
 
+## Example usage
+See the [example notebook](https://github.com/Mikeriess/SynBPS/blob/main/tests/test_pypi.ipynb) for a demonstration of the usage of SynBPS.
 
 # Todos
 - Extend HOMC to include h > 4

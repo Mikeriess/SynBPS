@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: SynBPS
-Version: 0.1.14
+Version: 0.1.15
 Summary: Synthetic Business Process Simulation
 Author-email: Mike Riess <mike@riess.no>
 Project-URL: Homepage, https://github.com/pypa/sampleproject
@@ -28,8 +28,10 @@ You can install SynBPS using pip::
 
     pip install SynBPS
 
-SynBPS requires python 3.10 or higher.
+SynBPS requires python 3.9 or higher.
 
+## Example usage
+See the [example notebook](https://github.com/Mikeriess/SynBPS/blob/main/tests/test_pypi.ipynb) for a demonstration of the usage of SynBPS.
 
 # Todos
 - Extend HOMC to include h > 4
