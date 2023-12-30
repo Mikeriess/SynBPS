@@ -1,14 +1,14 @@
 .. example:
 
 
-Usage (high level)
+Usage
 ===================
 SynBPS is designed to be used in the following manner:
 
-1. Generate design table (table of all settings to be simulated)
-2. Specify Train() and Test() functions
-3. Run experiments
-4. Analyze results
+* Generate experimental design table (table of all settings to be simulated)
+* Specify Train() and Eval() functions (to be used in each experiment)
+* Run experiments (using your approach)
+* Analyze results
 
 Example use-case
 ------------------

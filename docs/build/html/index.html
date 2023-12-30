@@ -21,7 +21,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Example usage" href="example.html" /> 
+    <link rel="next" title="Usage" href="example.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -45,8 +45,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="example.html">Example usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example.html">Usage</a></li>
 </ul>
 
         </div>
@@ -73,45 +72,24 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="welcome-to-synbps-s-documentation">
+  <div class="toctree-wrapper compound">
+</div>
+<section id="welcome-to-synbps-s-documentation">
 <h1>Welcome to SynBPS’s documentation!<a class="headerlink" href="#welcome-to-synbps-s-documentation" title="Link to this heading"></a></h1>
-<p>SynBPS is short for Synthetic Business Process Simulation, as it is intended for the simulation of <strong>synthetic</strong> (i.e. <em>muitiple</em>, <em>hypothetical</em>) business processes from parametric distributions.</p>
+<p>SynBPS is short for Synthetic Business Process Simulation, as it is intended for the simulation of <strong>synthetic</strong> (i.e. <em>multiple</em>, <em>hypothetical</em>) business processes from parametric distributions.</p>
 <p>The intended usage of this software is to benchmark models within predictive process monitoring research. It is not intended for the simulation of real-world business processes, but rather as an addition to existing benchmark data, such as the BPI Challenge datasets.</p>
 <p>The benefit of SynBPS is the full transparency of the data generating process, which can help further understand the effects of different process characteristics on predictive performance.</p>
-<section id="usage-high-level">
-<h2>Usage (high level)<a class="headerlink" href="#usage-high-level" title="Link to this heading"></a></h2>
-<p>SynBPS is designed to be used in the following manner:</p>
-<ol class="arabic simple">
-<li><p>Generate design table (table of all settings to be simulated)</p></li>
-<li><p>Specify Train() and Test() functions</p></li>
-<li><p>Run experiments</p></li>
-<li><p>Analyze results</p></li>
-</ol>
-</section>
 </section>
 <section id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h1>
-<div class="toctree-wrapper compound">
-</div>
-<dl>
-<dt><a class="reference internal" href="example.html"><span class="doc">Example usage</span></a></dt><dd><p>SynBPS is designed to be used in the following manner:</p>
-<ol class="arabic simple">
-<li><p>Generate design table (table of all settings to be simulated)</p></li>
-<li><p>Specify Train() and Test() functions</p></li>
-<li><p>Run experiments</p></li>
-<li><p>Analyze results</p></li>
-</ol>
-</dd>
-<dt><a class="reference internal" href="installation.html"><span class="doc">Installation</span></a></dt><dd><p>you can install SynBPS using pip with:</p>
+<p>You can install SynBPS using pip:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">SynBPS</span>
 </pre></div>
 </div>
-</dd>
-</dl>
+<p>SynBPS requires python 3.10 or higher.</p>
 <section id="citation">
 <h2>Citation<a class="headerlink" href="#citation" title="Link to this heading"></a></h2>
-<p>If you use SynBPS, please cite the corresponding paper.</p>
-<p>The paper can be cited as:</p>
+<p>If you use SynBPS, please cite the corresponding paper. The paper can be cited as:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">riess2024</span><span class="p">,</span>
           <span class="n">title</span><span class="o">=</span><span class="p">{</span><span class="n">A</span> <span class="n">parametric</span> <span class="n">simulation</span> <span class="n">framework</span> <span class="k">for</span> <span class="n">the</span> <span class="n">generation</span> <span class="n">of</span> <span class="n">event</span><span class="o">-</span><span class="n">log</span> <span class="n">data</span><span class="p">},</span>
           <span class="n">author</span><span class="o">=</span><span class="p">{</span><span class="n">Riess</span><span class="p">,</span> <span class="n">Mike</span><span class="p">},</span>
@@ -123,18 +101,6 @@
         <span class="p">}</span>
 </pre></div>
 </div>
-<p>Alternatively, the GitHub repository can be cited as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@misc</span><span class="p">{</span><span class="n">riess2023</span><span class="p">,</span>
-        <span class="n">author</span> <span class="o">=</span> <span class="p">{</span><span class="n">Mike</span> <span class="n">Riess</span><span class="p">},</span>
-        <span class="n">title</span> <span class="o">=</span> <span class="p">{</span><span class="n">SynBPS</span><span class="p">},</span>
-        <span class="n">year</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2023</span><span class="p">},</span>
-        <span class="n">publisher</span> <span class="o">=</span> <span class="p">{</span><span class="n">GitHub</span><span class="p">},</span>
-        <span class="n">journal</span> <span class="o">=</span> <span class="p">{</span><span class="n">GitHub</span> <span class="n">repository</span><span class="p">},</span>
-        <span class="n">howpublished</span> <span class="o">=</span> <span class="p">{</span>\<span class="n">url</span><span class="p">{</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">mikeriess</span><span class="o">/</span><span class="n">synbps</span><span class="p">}},</span>
-        <span class="n">commit</span> <span class="o">=</span> <span class="p">{</span><span class="n">enter</span> <span class="n">commit</span> <span class="n">that</span> <span class="n">you</span> <span class="n">used</span><span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-</div>
 </section>
 </section>
 
@@ -142,7 +108,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="example.html" class="btn btn-neutral float-right" title="Example usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="example.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

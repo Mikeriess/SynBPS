@@ -3,6 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. toctree::
+   :caption: Getting Started
+   :hidden:
+
+   example
+
 Welcome to SynBPS's documentation!
 ===================================
 SynBPS is short for Synthetic Business Process Simulation, as it is intended for the simulation of **synthetic** (i.e. *multiple*, *hypothetical*) business processes from parametric distributions.
@@ -13,35 +19,16 @@ The benefit of SynBPS is the full transparency of the data generating process, w
 
 Getting Started
 ================
+You can install SynBPS using pip::
 
-.. toctree::
-   :caption: Getting Started
-   :hidden:
+    pip install SynBPS
 
-   example
-   installation
-
-:doc:`example`
-   SynBPS is designed to be used in the following manner:
-
-   1. Generate design table (table of all settings to be simulated)
-   2. Specify Train() and Test() functions
-   3. Run experiments
-   4. Analyze results
-
-:doc:`installation`
-   you can install SynBPS using pip with::
-
-      pip install SynBPS
-
-
+SynBPS requires python 3.10 or higher.
 
 Citation
 -----------------
 
-If you use SynBPS, please cite the corresponding paper.
-
-The paper can be cited as:
+If you use SynBPS, please cite the corresponding paper. The paper can be cited as:
 ::
 
 	@article{riess2024,
@@ -53,16 +40,3 @@ The paper can be cited as:
 		  pages={999--999},
 		  year={2024}
 		}
-
-Alternatively, the GitHub repository can be cited as:
-::
-
-	@misc{riess2023,
-		author = {Mike Riess},
-		title = {SynBPS},
-		year = {2023},
-		publisher = {GitHub},
-		journal = {GitHub repository},
-		howpublished = {\url{https://github.com/mikeriess/synbps}},
-		commit = {enter commit that you used}
-	}
