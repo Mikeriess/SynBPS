@@ -1,3 +1,4 @@
 # data files
 .csv
 *.csv
+*.DS_store
