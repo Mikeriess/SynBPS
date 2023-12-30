@@ -1,0 +1,30 @@
+FROM nvidia/cuda:11.4.3-cudnn8-devel-ubuntu20.04
+
+RUN apt update
+RUN apt-get install -y python3 python3-pip
+
+
+# Install requirements
+COPY requirements.txt .
+RUN python3 -m pip install -r requirements.txt
+
+# Install torch - cuda version does however not match the image ^^ 
+RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+
+# Install jupyter lab
+RUN pip install jupyterlab
+
+# Install synbps
+RUN pip install synbps
+
+# Launch the jupyter server
+CMD ["jupyter","lab","--ip=0.0.0.0","--allow-root","--port=8888","--ServerApp.token=''","--ServerApp.password=''"]
+
+# docker build -u 1015 -t SYNBPS .
+# docker build -t SYNBPS .
+
+# docker run --gpus all -u 1015 -p 8888:8888 SYNBPS
+# docker run --gpus all -p 8888:8888 SYNBPS
+
+# to test gpu: import torch; print(torch.cuda.is_available())
