@@ -23,4 +23,3 @@ src/SynBPS/simulation/duration_helpers.py
 src/SynBPS/simulation/homc_helpers.py
 src/SynBPS/simulation/simulation_helpers.py
 src/SynBPS/simulation/simulation_pipeline.py
-tests/test.py
