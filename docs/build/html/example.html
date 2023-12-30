@@ -155,11 +155,10 @@ Here the settings for the experiments can be modified in the dictionary called r
 Before running the experiments, you need to define model training and evaluation functions.</p>
 <p>In this example we train a first state model, which is a model using only the first observed event (state) to predict to total cycle-time. The default data preparation will result in a prefix-log, which can be used to predict remaining cycle-time from every observed event in the trace.</p>
 <p>Input for the <strong>training_function</strong> is a dictionary named <strong>input_data</strong>, which contain the following:
-- x_train
-- x_test
-- y_train
-- y_test</p>
-<p>Output is an <strong>inference table</strong> containing predictions and actual target values for the test data. This table is used for analysis of the results. The <strong>eval_function</strong> also uses this table to calculate aggregated metrics.</p>
+* x_train
+* x_test
+* y_train
+* y_test</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">training_function</span><span class="p">(</span><span class="n">input_data</span><span class="p">):</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;training&quot;</span><span class="p">)</span>
 
@@ -191,8 +190,10 @@ Before running the experiments, you need to define model training and evaluation
     <span class="c1">#add predictions to the inference table</span>
     <span class="n">inference</span><span class="p">[</span><span class="s2">&quot;y_pred&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_pred</span>
     <span class="k">return</span> <span class="n">inference</span>
-
-<span class="k">def</span> <span class="nf">eval_function</span><span class="p">(</span><span class="n">inference</span><span class="p">):</span>
+</pre></div>
+</div>
+<p>Output is an <strong>inference table</strong> containing predictions and actual target values for the test data. This table is used for analysis of the results. The <strong>eval_function</strong> also uses this table to calculate aggregated metrics.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">eval_function</span><span class="p">(</span><span class="n">inference</span><span class="p">):</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;evaluation&quot;</span><span class="p">)</span>
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>

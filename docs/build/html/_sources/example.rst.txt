@@ -86,12 +86,10 @@ Before running the experiments, you need to define model training and evaluation
 In this example we train a first state model, which is a model using only the first observed event (state) to predict to total cycle-time. The default data preparation will result in a prefix-log, which can be used to predict remaining cycle-time from every observed event in the trace.
 
 Input for the **training_function** is a dictionary named **input_data**, which contain the following:
-- x_train
-- x_test
-- y_train
-- y_test
-
-Output is an **inference table** containing predictions and actual target values for the test data. This table is used for analysis of the results. The **eval_function** also uses this table to calculate aggregated metrics.
+* x_train
+* x_test
+* y_train
+* y_test
 
 .. code-block:: python
 
@@ -126,6 +124,10 @@ Output is an **inference table** containing predictions and actual target values
         #add predictions to the inference table
         inference["y_pred"] = y_pred
         return inference
+
+Output is an **inference table** containing predictions and actual target values for the test data. This table is used for analysis of the results. The **eval_function** also uses this table to calculate aggregated metrics.
+
+.. code-block:: python
 
     def eval_function(inference):
         print("evaluation")

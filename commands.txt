@@ -1,4 +1,8 @@
-url: https://packaging.python.org/en/latest/tutorials/packaging-projects/
+###############################
+Pypi:
+###############################
+
+Guide url: https://packaging.python.org/en/latest/tutorials/packaging-projects/
 
 # Update the package metadata in:
 pyproject.toml
@@ -17,6 +21,22 @@ python -m twine upload --repository testpypi dist/*
     username: __token__
     password: apikey
 
+python -m twine upload --repository pypi dist/*
+    username: __token__
+    password: apikey
+
 
 #### install package
-python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps SynBPS==0.0.8
+python -m pip install --index-url https://test.pypi.org/simple/ --no-deps SynBPS==0.0.8
+python pip install SynBPS
+
+###############################
+Documentation:
+###############################
+
+1. Change source files
+2. Terminal:
+    cd docs
+    .\make html
+3. Git commit, git push
+4. Goto readthedocs.org and build SynBPS
