@@ -247,7 +247,7 @@ def GenerateTrainData(df,
     # Generate features case by case
     for i in cases:
         #iteration = iteration +1
-        print("case:",i, "of",num_cases)
+        #print("case:",i, "of",num_cases)
     
         #Look only at one caseid at a time
         subset = data.loc[data["id"] == i]
@@ -437,9 +437,9 @@ def GenerateTrainData(df,
             'drop']
     out.columns = cols
       
-    print("============================")
+    print("==========================================")
     print("Post-processing:")
-    print("============================")
+    print("==========================================")
     #####################################
     # One-hot encoding
     
@@ -738,13 +738,12 @@ def GetCaseStats(df, padded_df, CaseData, y_t, y_a, y, prefixwindow=0, dateforma
     
     #Get all SEQIDs
     SEQIDS = padded_df["SEQID"].unique().tolist()
-    SEQIDS
     
     allseqs = len(SEQIDS)
     #logic to build output table
     counter = 0
     for i in SEQIDS:
-        print("Making casestats for SEQ:",counter,"of",allseqs)
+        #print("Making casestats for SEQ:",counter,"of",allseqs)
         counter = counter +1    
         prefix = padded_df.loc[padded_df["SEQID"]==i]
                 
@@ -817,33 +816,34 @@ def SplitAndReshape(df, y_a, y_t, y, split_criterion, prefixlength, standardize=
     
     ####################################################
     #Add the splitting cplumn (true = to trainset):
-    print(len(x))
+    #print(len(x))
     X = pd.merge(left=x.reset_index(drop=True),
                  right=split.reset_index(drop=True), 
                  how='left', 
                  on = 'caseid')
-    print(len(X))
+    #print(len(X))
     
-    print(len(y_a))
+    #print(len(y_a))
     y_a = pd.merge(left=y_a.reset_index(drop=True),
                  right=split.reset_index(drop=True), 
                  how='left', 
                  on = 'caseid')
-    print(len(y_a))
+    #print(len(y_a))
     
-    print(len(y_t))
+    #print(len(y_t))
     y_t = pd.merge(left=y_t.reset_index(drop=True),
                  right=split.reset_index(drop=True), 
                  how='left', 
                  on = 'caseid')
-    print(len(y_t))
+    #print(len(y_t))
     
-    print(len(y))
+    #print(len(y))
     y = pd.merge(left=y.reset_index(drop=True),
                  right=split.reset_index(drop=True), 
                  how='left', 
                  on = 'caseid')
-    print(len(y))
+    #print(len(y))
+    
     ####################################################
     #Subset based on the date divider, made in beginning:
     X_train = X.loc[X["trainset"]==True]

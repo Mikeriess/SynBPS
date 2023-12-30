@@ -127,12 +127,8 @@ for run in df.index:
             """
             Prepare data for modelling (memory here refers to RAM)
             """
-            from SynBPS.dataprep.memory_helperfunctions import prepare_data_f_memory
-            input_data = prepare_data_f_memory(log, verbose=False)
-
-            # if first-state model is desired, use the following function after generating the input_data object
-            #from SynBPS.dataprep.firststate_helperfunctions import fs_prepare_dataset_from_memory
-            #input_data = fs_prepare_dataset_from_memory(input_data, sample=1.0, transform="log", first_state=True, verbose=True)
+            from SynBPS.dataprep.prepare import prefix_data
+            input_data = prefix_data(log, verbose=False)
 
             """
             Train a model

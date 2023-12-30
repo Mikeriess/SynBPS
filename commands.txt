@@ -1,5 +1,8 @@
 url: https://packaging.python.org/en/latest/tutorials/packaging-projects/
 
+# Update the package metadata in:
+pyproject.toml
+
 # build install and update
 python3 -m pip install --upgrade build
 
@@ -12,7 +15,8 @@ python3 -m pip install --upgrade twine
 # upload package with twine
 python3 -m twine upload --repository testpypi dist/*
     username: __token__
-    password: apikey
+    password: 
+
 
 #### install package
 python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps SynBPS==0.0.8

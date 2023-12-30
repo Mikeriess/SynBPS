@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: SynBPS
-Version: 0.0.8
+Version: 0.1.12
 Summary: Synthetic Business Process Simulation
 Author-email: Mike Riess <mike@riess.no>
 Project-URL: Homepage, https://github.com/pypa/sampleproject
@@ -24,4 +24,3 @@ Requires-Dist: scikit-learn>=0.22.2
 - Publish on main pypi
 - Extend HOMC to include h > 4
 - Add ML example to example notebook
-- Create a function for running experiments to abstract away for-loop

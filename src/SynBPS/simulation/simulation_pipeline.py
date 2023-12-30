@@ -27,7 +27,7 @@ def generate_eventlog(curr_settings, output_dir=None):
                             "Deterministic_offset_u":int(curr_settings["Deterministic_offset_u"])}
     
     datetime_offset = int(curr_settings["datetime_offset"])
-    run = int(curr_settings["run"])
+    run = int(curr_settings["idx"])
     
     
     import pandas as pd
@@ -48,12 +48,6 @@ def generate_eventlog(curr_settings, output_dir=None):
 
     # Generate an event-log
     if process_type == "memory":
-        # HOMC only valid for medium entropy
-        #if process_entropy == "med_entropy":
-        #Theta, Phi = Process_with_memory(D = statespace, 
-        #                        mode = process_entropy, 
-        #                        num_traces=number_of_traces, 
-        #                        K=process_memory)
 
         # HOMC not valid for min_entropy, as this is a deterministic process
         if process_entropy == "min_entropy":
@@ -190,9 +184,9 @@ def generate_eventlog(curr_settings, output_dir=None):
 
 ###########
 
-def run_experiments(training_function, eval_function, out_file="results.csv", design_table="design_table.csv"):
+def run_experiments(training_function, eval_function, output_dir="data/", out_file="results.csv", design_table="design_table.csv"):
     """
-    Function for running experiments to abstract away for-loop
+    Function for running experiments
     """
     
     # Load necessary libraries
@@ -201,7 +195,7 @@ def run_experiments(training_function, eval_function, out_file="results.csv", de
     import time
 
     # load the design table as df
-    df = pd.read_csv(design_table)
+    df = pd.read_csv(output_dir+design_table)
     
     # Placeholder for the results
     results = []
@@ -213,7 +207,7 @@ def run_experiments(training_function, eval_function, out_file="results.csv", de
         Retrieving settings for experiment i
         """
         curr_settings = df.loc[run]
-        curr_settings["run"] = run
+        curr_settings["idx"] = run
         
         """
         If experiment is not previously performed
@@ -224,7 +218,7 @@ def run_experiments(training_function, eval_function, out_file="results.csv", de
     
             # generate the log
             from SynBPS.simulation.simulation_pipeline import generate_eventlog
-            log = generate_eventlog(curr_settings=curr_settings, output_dir="data/")
+            log = generate_eventlog(curr_settings=curr_settings, output_dir=output_dir)
     
             # store metrics from simulated log
             curr_settings["simuation_time_sec"] = time.time() - start_time
@@ -258,57 +252,50 @@ def run_experiments(training_function, eval_function, out_file="results.csv", de
             """
 
             # Prefix-log format:
-            from SynBPS.dataprep.memory_helperfunctions import prepare_data_f_memory
-            input_data = prepare_data_f_memory(log, verbose=False)
-
-            if curr_settings["first_state_model"] == True:
-                # First-state model:
-                from SynBPS.dataprep.firststate_helperfunctions import fs_prepare_dataset_from_memory
-                input_data = fs_prepare_dataset_from_memory(input_data, sample=1.0, transform="log", first_state=True, verbose=True)
+            from SynBPS.dataprep.prepare import prefix_data
+            input_data = prefix_data(log, verbose=False)
 
             """
             Train a model
             """
             
-            # X: 
-            input_data["x_train"]
-            input_data["x_test"]
+            ### Custom training function
+            inference_test = training_function(input_data)
+            
+            # store inference table
+            inference_test.to_csv(output_dir+"inference_test_"+str(run)+".csv", index=False)
 
-            # Y:
-            input_data["y_train"]
-            input_data["y_test"]
-            
-            
-            ### Custom training
-            
-            training_function()
-            
             """
             Evaluate the model
             """
 
-            ### Custom evaluation
-
-            eval_function()
+            ### Custom evaluation function
+            metrics = eval_function(inference_test)
             
             """
             Store the results
             """
+            
+            # Mark as done in the design table
+            df.loc[run,"Done"] = 1
+            df.to_csv(output_dir + design_table, index=False)  
             
             ### Store metrics to the in curr_settings dictionary which becomes the result table
             ### Prefixing column names is ideal for later analysis
             
             curr_settings["RESULT_num_events"] = len(log)
             
-            
-            # Mark as done in the design table
-            df.loc[run,"Done"] = 1
-            df.to_csv(design_table, index=False)  
+            # add evaluation metrics
+            metrics = pd.DataFrame(metrics, index=[run])
+            curr_settings = curr_settings.to_dict()
+            curr_settings = pd.DataFrame(curr_settings, index=[run])
+            res_i = pd.concat([curr_settings, metrics], axis=1)
             
             # Store the settings of run i
-            results.append(curr_settings)
+            results.append(res_i)
     
-    #store results
-    experiments = pd.DataFrame(results)
-    experiments.to_csv(out_file, index=False)  
-    return results
+            #store results
+            experiments = pd.concat(results)
+            experiments.to_csv(output_dir+out_file, index=False)
+                    
+    return experiments

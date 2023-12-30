@@ -1,16 +1,11 @@
 
-def prepare_data_f_memory(log, verbose=False):
+def prefix_data(log, verbose=False):
     import pandas as pd
     import numpy as np
-    #from helperfunctions import *
-    #from simulation_pipeline import *
     from SynBPS.dataprep.dataprep_helperfunctions import InitialFormatting, GetFileInfo, MakeSplitCriterion, GenerateTrainData, PadInputs, CaseData, GetCaseStats, SplitAndReshape
     
-    """
-    Subset
-    """
-    log = log[['caseid', 'activity', 'activity_no', 'start_datetime',
-       'end_datetime']]
+    # select relevant columns
+    log = log[['caseid', 'activity', 'activity_no', 'start_datetime','end_datetime']]
     
     # rename
     log = log.rename({"caseid":"id",
@@ -29,7 +24,7 @@ def prepare_data_f_memory(log, verbose=False):
     
     splitmode = "event"
     print("mode:",splitmode)
-    print("*"*250)
+    print("=======================================")
     
     # make split criteria
     split_criterion = MakeSplitCriterion(df, trainsize=0.5, mode=splitmode) # "event", "case"
