@@ -13,7 +13,7 @@ You can install SynBPS using pip::
 SynBPS requires python 3.9 or higher.
 
 ## Example usage
-See the [example notebook](https://github.com/Mikeriess/SynBPS/blob/main/tests/test_pypi.ipynb) for a demonstration of the usage of SynBPS.
+See the [example notebook](https://github.com/Mikeriess/SynBPS/blob/main/tests/test_pypi.ipynb) for a short demo of SynBPS.
 
 ## Documentation
 See the [official documentation here](https://synbps.readthedocs.io/en/latest/).
