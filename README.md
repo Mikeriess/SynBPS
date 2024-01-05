@@ -1,4 +1,6 @@
 # SynBPS
+[![Downloads](https://static.pepy.tech/badge/synbps)](https://pepy.tech/project/synbps)[![Documentation Status](https://readthedocs.org/projects/synbps/badge/?version=latest)](https://synbps.readthedocs.io/en/latest/?badge=latest)
+
 SynBPS is short for Synthetic Business Process Simulation, as it is intended for the simulation of **synthetic** (i.e. *multiple*, *hypothetical*) business processes from parametric distributions.
 
 The intended usage of this software is to benchmark models within predictive process monitoring research. It is not intended for the simulation of real-world business processes, but rather as an addition to existing benchmark data, such as the BPI Challenge datasets. 
