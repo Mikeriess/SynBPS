@@ -23,6 +23,20 @@ See the [official documentation here](https://synbps.readthedocs.io/en/latest/).
 # Todos
 - Extend HOMC to include h > 4
 
+## Citation
+If you use SynBPS, please cite the corresponding paper. The paper can be cited as:
+
+```
+	@article{riess2024,
+		  title={A parametric simulation framework for the generation of event-log data},
+		  author={Riess, Mike},
+		  journal={under review},
+		  volume={999},
+		  number={999},
+		  pages={999--999},
+		  year={2024}
+		}
+```
 
 ## Contributing
 If you would like to contribute to SynBPS, you are welcome to submit your suggestions, bug reports, or pull requests. Follow the guidelines below to ensure smooth collaboration:
