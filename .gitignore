@@ -2,3 +2,5 @@
 .csv
 *.csv
 *.DS_store
+*.pptx
+*.private
