@@ -7,6 +7,8 @@ The intended usage of this software is to benchmark models within predictive pro
 
 The benefit of SynBPS is the full transparency of the data generating process, which can help further understand the effects of different process characteristics on predictive performance. 
 
+![header image](https://github.com/mikeriess/synbps/archive/illustration.png)
+
 # Getting Started
 You can install SynBPS using pip:
 
