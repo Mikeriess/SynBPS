@@ -21,10 +21,6 @@ RUN pip install synbps
 # Launch the jupyter server
 CMD ["jupyter","lab","--ip=0.0.0.0","--allow-root","--port=8888","--ServerApp.token=''","--ServerApp.password=''"]
 
-# docker build -u 1015 -t SYNBPS .
 # docker build -t SYNBPS .
 
-# docker run --gpus all -u 1015 -p 8888:8888 SYNBPS
 # docker run --gpus all -p 8888:8888 SYNBPS
-
-# to test gpu: import torch; print(torch.cuda.is_available())
