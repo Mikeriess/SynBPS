@@ -7,7 +7,7 @@ The intended usage of this software is to benchmark models within predictive pro
 
 The benefit of SynBPS is the full transparency of the data generating process, which can help further understand the effects of different process characteristics on predictive performance. 
 
-![header image](https://github.com/Mikeriess/SynBPS/blob/main/archive/illustration.png)
+![header image](https://github.com/Mikeriess/SynBPS/blob/main/docs/illustration.png)
 
 # Getting Started
 You can install SynBPS using pip:
@@ -29,7 +29,7 @@ See the [official documentation here](https://synbps.readthedocs.io/en/latest/).
 If you use SynBPS, please cite the corresponding paper. The paper can be cited as:
 
 ```
-	@article{riess2024,
+	@article{riess2023,
 		  title={A parametric simulation framework for the generation of event-log data},
 		  author={Riess, Mike},
 		  journal={under review},
