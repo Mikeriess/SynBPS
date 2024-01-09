@@ -65,12 +65,12 @@ def modify_rules(parent, states):
                 
                 
                 # if e is observed in current timestep, set flag to true
-                if row[idx] == "E":
+                if row[idx] == "!":
                     e_observed = True
                 
                 # 
                 if e_observed == True:
-                    value = "E"
+                    value = "!"
                 else:
                     value = row[idx]
                 
@@ -119,6 +119,7 @@ def generate_condprob(parent, states, mode="max_entropy", n_transitions=5):
                 vec[i] = np.round(np.random.random(1)[0],decimals=8)
                 
         if mode=="min_entropy":
+            """
             #get 1 random row with probability == 1 and 0 for rest of the rows
             vec = np.zeros(len(subset)).tolist()
             
@@ -128,6 +129,9 @@ def generate_condprob(parent, states, mode="max_entropy", n_transitions=5):
             
             #set probability to 1
             vec[selected] = 1
+            """
+            raise ValueError('Minimum entropy not valid for a HOMC: This is a deterministic process.')
+
             
         
         #normalize it

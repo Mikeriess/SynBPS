@@ -7,9 +7,9 @@ def GenerateHOMC(D = ["a","b","c","d"], # statespace for intial prob
     """
     Create a higher-order markov chain
     """
-
-    from synbps.simulation.homc_helpers import cartesian_product, combine_to_list, modify_rules, generate_condprob
-    from synbps.simulation.alg2_initial_probabilities import GenerateInitialProb
+    #synbps.simulation.
+    from homc_helpers import cartesian_product, combine_to_list, modify_rules, generate_condprob
+    from alg2_initial_probabilities import GenerateInitialProb
 
     # A function to list-based conditional probabilities into a nested dictionary:
     def transform_markov_chain(markov_chain_list):
@@ -127,11 +127,12 @@ def SampleHOMC(D, P0, P_k):
     return sigma
 
 ############ Testing
+D = ["a","b","c","d"]
 
-P0, P_k = GenerateHOMC(D = ["a","b","c","d"], # statespace for intial prob
-                 mode = ["min_entropy","med_entropy","max_entropy"][0], # complexity
-                n_transitions = 2 # number of transitions with med_entropy
-                 )
+P0, P_k = GenerateHOMC(D, # statespace for intial prob
+                    mode = ["min_entropy","med_entropy","max_entropy"][1], # complexity
+                    n_transitions = 2 # number of transitions with med_entropy
+                    )
 
 sigma = SampleHOMC(D, P0, P_k)
 print(sigma)
