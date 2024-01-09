@@ -1,10 +1,10 @@
 Metadata-Version: 2.1
 Name: SynBPS
-Version: 1.0.0
+Version: 1.0.1
 Summary: Synthetic Business Process Simulation
 Author-email: Mike Riess <mike@riess.no>
-Project-URL: Homepage, https://github.com/pypa/sampleproject
-Project-URL: Issues, https://github.com/pypa/sampleproject/issues
+Project-URL: Homepage, https://github.com/mikeriess/synbps
+Project-URL: Issues, https://github.com/mikeriess/synbps/issues
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
@@ -19,13 +19,16 @@ Requires-Dist: scikit-learn>=0.22.2
 # SynBPS
 [![Downloads](https://static.pepy.tech/badge/synbps)](https://pepy.tech/project/synbps) [![Documentation Status](https://readthedocs.org/projects/synbps/badge/?version=latest)](https://synbps.readthedocs.io/en/latest/?badge=latest)
 
-SynBPS is short for Synthetic Business Process Simulation, as it is intended for the simulation of **synthetic** (i.e. *multiple*, *hypothetical*) business processes from parametric distributions.
+SynBPS is short for Synthetic Business Process Simulation, as it is intended for the simulation of **synthetic** (i.e. *multiple*, *hypothetical*) business processes from a specified distribution.
 
-The intended usage of this software is to benchmark models within predictive process monitoring research. It is not intended for the simulation of real-world business processes, but rather as an addition to existing benchmark data, such as the BPI Challenge datasets. 
+## How?
+The intended usage of this software is to benchmark new methods within predictive process monitoring research. Rather than calibrating a simulation model from an existing process (as in existing frameworks), the aim is to simulate theoretical processes with varying degrees of noise in duration distributions and entropy in the control-flow. The framework uses customized algorithms, Higher-order Markov Chains (HOMC) and the Hypo-exponential distribution to represent temporal dependency (or its absence) in conditional duration distributions. 
 
-The benefit of SynBPS is the full transparency of the data generating process, which can help further understand the effects of different process characteristics on predictive performance. 
+![image](https://github.com/Mikeriess/SynBPS/blob/main/docs/illustration.png)
 
-![header image](https://github.com/Mikeriess/SynBPS/blob/main/docs/illustration.png)
+## Why?
+The benefit of SynBPS is in the full transparency of the data generating process, which can help further understand the influence of process characteristics on predictive performance. By changing the entropy of the process, SynBPS lets you compare the difference in predictive performance across everything between predictable to completely chaotic processes.
+
 
 # Getting Started
 You can install SynBPS using pip:
@@ -41,7 +44,9 @@ See the [example notebook](https://github.com/Mikeriess/SynBPS/blob/main/tests/t
 See the [official documentation here](https://synbps.readthedocs.io/en/latest/).
 
 # Todos
-- Extend HOMC to include h > 4
+- Extend HOMC to include h > 4 
+- Add functionality to specify sampling approach of HOMC
+- Add data pre-processing in more formats
 
 ## Citation
 If you use SynBPS, please cite the corresponding paper. The paper can be cited as:
