@@ -26,7 +26,8 @@ See the [example notebook](https://github.com/Mikeriess/SynBPS/blob/main/tests/t
 See the [official documentation here](https://synbps.readthedocs.io/en/latest/).
 
 # Todos
-- Extend HOMC to include h > 4
+- Extend HOMC to include h > 4 
+- Add functionality to specify sampling approach of HOMC
 - Add data pre-processing in more formats
 
 ## Citation
