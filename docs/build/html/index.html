@@ -5,7 +5,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Welcome to SynBPS’s documentation! &mdash; SynBPS v.0.1.12 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
   
@@ -76,9 +76,9 @@
 </div>
 <section id="welcome-to-synbps-s-documentation">
 <h1>Welcome to SynBPS’s documentation!<a class="headerlink" href="#welcome-to-synbps-s-documentation" title="Link to this heading"></a></h1>
-<p>SynBPS is short for Synthetic Business Process Simulation, as it is intended for the simulation of <strong>synthetic</strong> (i.e. <em>multiple</em>, <em>hypothetical</em>) business processes from parametric distributions.</p>
-<p>The intended usage of this software is to benchmark models within predictive process monitoring research. It is not intended for the simulation of real-world business processes, but rather as an addition to existing benchmark data, such as the BPI Challenge datasets.</p>
-<p>The benefit of SynBPS is the full transparency of the data generating process, which can help further understand the effects of different process characteristics on predictive performance.</p>
+<p>SynBPS is short for Synthetic Business Process Simulation, as it is intended for the simulation of <strong>synthetic</strong> (i.e. <em>multiple</em>, <em>hypothetical</em>) business processes from a specified distribution.</p>
+<p>The intended usage of this software is to benchmark new methods within predictive process monitoring research. Rather than calibrating a simulation model from an existing process (as in existing frameworks), the aim is to simulate theoretical processes with varying degrees of noise in duration distributions and entropy in the control-flow.</p>
+<p>The benefit of SynBPS is in the full transparency of the data generating process, which can help further understand the influence of process characteristics on predictive performance. By changing the entropy of the process, SynBPS lets you compare the difference in predictive performance across everything between predictable to completely chaotic processes.</p>
 </section>
 <section id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h1>
@@ -90,15 +90,14 @@
 <section id="citation">
 <h2>Citation<a class="headerlink" href="#citation" title="Link to this heading"></a></h2>
 <p>If you use SynBPS, please cite the corresponding paper. The paper can be cited as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">riess2024</span><span class="p">,</span>
-          <span class="n">title</span><span class="o">=</span><span class="p">{</span><span class="n">A</span> <span class="n">parametric</span> <span class="n">simulation</span> <span class="n">framework</span> <span class="k">for</span> <span class="n">the</span> <span class="n">generation</span> <span class="n">of</span> <span class="n">event</span><span class="o">-</span><span class="n">log</span> <span class="n">data</span><span class="p">},</span>
-          <span class="n">author</span><span class="o">=</span><span class="p">{</span><span class="n">Riess</span><span class="p">,</span> <span class="n">Mike</span><span class="p">},</span>
-          <span class="n">journal</span><span class="o">=</span><span class="p">{</span><span class="n">Pending</span><span class="p">},</span>
-          <span class="n">volume</span><span class="o">=</span><span class="p">{</span><span class="mi">999</span><span class="p">},</span>
-          <span class="n">number</span><span class="o">=</span><span class="p">{</span><span class="mi">999</span><span class="p">},</span>
-          <span class="n">pages</span><span class="o">=</span><span class="p">{</span><span class="mi">999</span><span class="o">--</span><span class="mi">999</span><span class="p">},</span>
-          <span class="n">year</span><span class="o">=</span><span class="p">{</span><span class="mi">2024</span><span class="p">}</span>
-        <span class="p">}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inbook</span><span class="p">{</span><span class="n">Riess2023Framework</span><span class="p">,</span>
+<span class="n">author</span> <span class="o">=</span> <span class="p">{</span><span class="n">Riess</span><span class="p">,</span> <span class="n">Mike</span><span class="p">},</span>
+<span class="n">title</span> <span class="o">=</span> <span class="p">{</span><span class="n">A</span> <span class="n">Parametric</span> <span class="n">Simulation</span> <span class="n">Framework</span> <span class="k">for</span> <span class="n">the</span> <span class="n">Generation</span> <span class="n">of</span> <span class="n">Event</span><span class="o">-</span><span class="n">Log</span> <span class="n">Data</span><span class="p">},</span>
+<span class="n">booktitle</span> <span class="o">=</span> <span class="p">{</span><span class="n">Essays</span> <span class="n">on</span> <span class="n">Predictive</span> <span class="ow">and</span> <span class="n">Prescriptive</span> <span class="n">Process</span> <span class="n">Monitoring</span><span class="p">},</span>
+<span class="n">publisher</span> <span class="o">=</span> <span class="p">{</span><span class="n">Norwegian</span> <span class="n">University</span> <span class="n">of</span> <span class="n">Life</span> <span class="n">Sciences</span><span class="p">},</span>
+<span class="n">year</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2023</span><span class="p">},</span>
+<span class="n">pages</span> <span class="o">=</span> <span class="p">{</span><span class="mi">75</span><span class="o">-</span><span class="mi">98</span><span class="p">},</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </section>
