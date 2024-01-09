@@ -6,7 +6,7 @@ SynBPS is short for Synthetic Business Process Simulation, as it is intended for
 ## How?
 The intended usage of this software is to benchmark new methods within predictive process monitoring research. Rather than calibrating a simulation model from an existing process (as in existing frameworks), the aim is to simulate theoretical processes with varying degrees of noise in duration distributions and entropy in the control-flow. 
 
-![header image](https://github.com/Mikeriess/SynBPS/blob/main/docs/illustration.png)
+![image](https://github.com/Mikeriess/SynBPS/blob/main/docs/illustration.png)
 
 ## Why?
 The benefit of SynBPS is in the full transparency of the data generating process, which can help further understand the influence of process characteristics on predictive performance. By changing the entropy of the process, SynBPS lets you compare the difference in predictive performance across everything between predictable to completely chaotic processes.
