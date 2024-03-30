@@ -35,12 +35,12 @@ If you use SynBPS, please cite the corresponding paper. The paper can be cited a
 
 ```
 	@article{riess2024synbps,
-	title={SynBPS: a parametric simulation framework for the generation of event-log data},
-	author={Riess, Mike},
-	journal={SIMULATION},
-	pages={00375497241233326},
-	year={2024},
-	publisher={SAGE Publications Sage UK: London, England}
+		title={SynBPS: a parametric simulation framework for the generation of event-log data},
+		author={Riess, Mike},
+		journal={SIMULATION},
+		pages={00375497241233326},
+		year={2024},
+		publisher={SAGE Publications Sage UK: London, England}
 	}
 ```
 
