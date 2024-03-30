@@ -4,7 +4,7 @@
 SynBPS is short for Synthetic Business Process Simulation, as it is intended for the simulation of **synthetic** business processes. Put simply, this framework lets you run experiments across **multiple business processes**, sampled from well-known parametric distributions.
 
 ## How?
-The intended usage of this software is to benchmark new methods within predictive process monitoring research. Rather than calibrating a simulation model from an existing process (as in existing frameworks), the aim is to simulate theoretical processes with varying degrees of noise in duration distributions and entropy in the control-flow. The framework uses algorithms, Higher-order Markov Chains (HOMC) and the Hypo-exponential distribution to represent temporal dependency (or its absence) in conditional duration distributions. 
+The intended usage of this software is to benchmark new methods within predictive process monitoring research. Rather than calibrating a simulation model from an existing process (as in existing frameworks), the aim is to simulate theoretical processes with varying degrees of noise in duration distributions and entropy in the control-flow. The framework uses algorithms (described in the publication), Higher-order Markov Chains (HOMC) and the Hypo-exponential distribution to represent temporal dependency (or its absence) in conditional duration distributions. 
 
 ![image](https://github.com/Mikeriess/SynBPS/blob/main/docs/illustration.png)
 
