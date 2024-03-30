@@ -34,13 +34,13 @@ See the [official documentation here](https://synbps.readthedocs.io/en/latest/).
 If you use SynBPS, please cite the corresponding paper. The paper can be cited as:
 
 ```
-	@inbook{Riess2023Framework,
-	author = {Riess, Mike},
-	title = {A Parametric Simulation Framework for the Generation of Event-Log Data},
-	booktitle = {Essays on Predictive and Prescriptive Process Monitoring},
-	publisher = {Norwegian University of Life Sciences},
-	year = {2023},
-	pages = {75-98},
+	@article{riess2024synbps,
+	title={SynBPS: a parametric simulation framework for the generation of event-log data},
+	author={Riess, Mike},
+	journal={SIMULATION},
+	pages={00375497241233326},
+	year={2024},
+	publisher={SAGE Publications Sage UK: London, England}
 	}
 ```
 
