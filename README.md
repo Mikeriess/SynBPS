@@ -1,7 +1,7 @@
 # SynBPS
 [![Downloads](https://static.pepy.tech/badge/synbps)](https://pepy.tech/project/synbps) [![Documentation Status](https://readthedocs.org/projects/synbps/badge/?version=latest)](https://synbps.readthedocs.io/en/latest/?badge=latest)
 
-SynBPS is short for Synthetic Business Process Simulation, as it is intended for the simulation of **synthetic** business processes, where the full process is sampled from a distribution specified by the user. In other words, this framework lets you run experiments across multiple business processes, sampled from well-known parametric distributions.
+SynBPS is short for Synthetic Business Process Simulation, as it is intended for the simulation of **synthetic** business processes. Put simply, this framework lets you run experiments across **multiple business processes**, sampled from well-known parametric distributions.
 
 ## How?
 The intended usage of this software is to benchmark new methods within predictive process monitoring research. Rather than calibrating a simulation model from an existing process (as in existing frameworks), the aim is to simulate theoretical processes with varying degrees of noise in duration distributions and entropy in the control-flow. The framework uses algorithms, Higher-order Markov Chains (HOMC) and the Hypo-exponential distribution to represent temporal dependency (or its absence) in conditional duration distributions. 
