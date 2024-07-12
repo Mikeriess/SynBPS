@@ -11,15 +11,11 @@ RUN python3 -m pip install -r requirements.txt
 # Install torch - cuda version does however not match the image ^^ 
 RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
-
-# Install jupyter lab
-RUN pip install jupyterlab
-
 # Install synbps
 RUN pip install synbps
 
-# Launch the jupyter server
-CMD ["jupyter","lab","--ip=0.0.0.0","--allow-root","--port=8888","--ServerApp.token=''","--ServerApp.password=''"]
+# Run experiments
+CMD ["python", "-m", "synbps.run_simulation"]
 
 # docker build -t SYNBPS .
 

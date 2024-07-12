@@ -5,15 +5,11 @@ SynBPS is short for Synthetic Business Process Simulation, as it is intended for
 
 Publication: [Riess (2024)](https://journals.sagepub.com/doi/abs/10.1177/00375497241233326)
 
-
-## How?
-The intended usage of this software is to benchmark new methods within predictive process monitoring research. Rather than calibrating a simulation model from an existing process (as in existing frameworks), the aim is to simulate theoretical processes with varying degrees of noise in duration distributions and entropy in the control-flow. The framework uses algorithms (described in the publication), Higher-order Markov Chains (HOMC) and the Hypo-exponential distribution to represent temporal dependency (or its absence) in conditional duration distributions. 
-
-![image](https://github.com/Mikeriess/SynBPS/blob/main/docs/illustration.png)
-
-## Why?
-The benefit of SynBPS is in the transparency (and simplicity) of the data generating process, which can help further understand the influence of process characteristics on predictive performance. By e.g. changing the entropy of the process, SynBPS lets you compare the difference in predictive performance across everything between predictable to completely chaotic processes.
-
+## Whats new?
+- Example notebooks in ```examples/``` folder: 
+	- Full pipeline for a systematic experiment
+	- Generating a single event-log based on parameters alone
+- Separation of functions for experimental design and eve
 
 # Getting Started
 You can install SynBPS using pip:
@@ -33,6 +29,8 @@ See the [official documentation here](https://synbps.readthedocs.io/en/latest/).
 - Add functionality to specify sampling approach of HOMC
 - Add data pre-processing in more formats
 
+
+
 ## Citation
 If you use SynBPS, please cite the corresponding paper. The paper can be cited as:
 
@@ -46,6 +44,15 @@ If you use SynBPS, please cite the corresponding paper. The paper can be cited a
 	publisher={SAGE Publications Sage UK: London, England}
 }
 ```
+
+## How?
+The intended usage of this software is to benchmark new methods within predictive process monitoring research. Rather than calibrating a simulation model from an existing process (as in existing frameworks), the aim is to simulate theoretical processes with varying degrees of noise in duration distributions and entropy in the control-flow. The framework uses algorithms (described in the publication), Higher-order Markov Chains (HOMC) and the Hypo-exponential distribution to represent temporal dependency (or its absence) in conditional duration distributions. 
+
+![image](https://github.com/Mikeriess/SynBPS/blob/main/docs/illustration.png)
+
+## Why?
+The benefit of SynBPS is in the transparency (and simplicity) of the data generating process, which can help further understand the influence of process characteristics on predictive performance. By e.g. changing the entropy of the process, SynBPS lets you compare the difference in predictive performance across everything between predictable to completely chaotic processes.
+
 
 ## Contributing
 If you would like to contribute to SynBPS, you are welcome to submit your suggestions, bug reports, or pull requests. Follow the guidelines below to ensure smooth collaboration:
