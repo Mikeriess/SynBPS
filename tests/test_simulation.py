@@ -54,6 +54,6 @@ def test_basic_simulation():
 
     from SynBPS.simulation.simulation_pipeline import generate_eventlog
 
-    log = generate_eventlog(eventlog_settings, output_dir="testdata/")
+    log = generate_eventlog(eventlog_settings, output_dir="")
 
     assert len(log) > 100
