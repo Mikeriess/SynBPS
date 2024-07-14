@@ -23,10 +23,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e .
 
+    - name: Debug directory structure
+      run: |
+        echo "Project root:"
+        ls -R
+        echo "Tests directory:"
+        ls -R tests/
+
     - name: Run tests
       run: |
         pip install pytest
-        pytest /tests
+        pytest -v /tests
 
     - name: Build package
       run: python -m build
