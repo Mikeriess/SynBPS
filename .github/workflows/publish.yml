@@ -33,7 +33,7 @@ jobs:
     - name: Run tests
       run: |
         pip install pytest
-        pytest -v /tests
+        pytest -v tests/
 
     - name: Build package
       run: python -m build
