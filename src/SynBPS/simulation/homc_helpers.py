@@ -150,6 +150,10 @@ def generate_condprob(parent, states, mode="max_entropy", n_transitions=5):
 def create_homc(states, h0, h=2, mode="max_entropy", n_transitions=5):
         
     from SynBPS.simulation.homc_helpers import cartesian_product, combine_to_list, modify_rules, generate_condprob
+
+    from SynBPS.simulation.HOMC.distributions.ConditionalProbabilityTable import ConditionalProbabilityTable
+    from SynBPS.simulation.HOMC.distributions.DiscreteDistribution import DiscreteDistribution
+    from SynBPS.simulation.HOMC.MarkovChain import MarkovChain
     
     
     ######################################
@@ -228,7 +232,7 @@ def create_homc(states, h0, h=2, mode="max_entropy", n_transitions=5):
     """
     Input generated tables to pomegranate
     """
-    from pomegranate import DiscreteDistribution, ConditionalProbabilityTable, MarkovChain
+    #from pomegranate import DiscreteDistribution, ConditionalProbabilityTable, MarkovChain
     
     if h == 1:
         p0 = DiscreteDistribution(h0)
