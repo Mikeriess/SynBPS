@@ -1,7 +1,10 @@
 # data files
 .csv
 *.csv
+bpmn_diagram.png
 *.DS_store
 *.pptx
 *.private
 *.DS_Store
+*.ipynb_checkpoints
+todo.md
