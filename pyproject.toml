@@ -1,6 +1,6 @@
 [project]
 name = "SynBPS"
-version = "1.0.3"
+version = "1.0.5"
 authors = [
   { name="Mike Riess", email="mike@riess.no" },
 ]
@@ -8,7 +8,6 @@ description = "Synthetic Business Process Simulation"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "pomegranate==0.14.8",
     "numpy==1.26.2",
     "pandas==2.1.4",
     "scikit-learn>=0.22.2",
