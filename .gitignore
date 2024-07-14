@@ -7,3 +7,4 @@ bpmn_diagram.png
 *.private
 *.DS_Store
 *.ipynb_checkpoints
+todo.md
