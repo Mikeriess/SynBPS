@@ -24,6 +24,10 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_simulation.py"]
+
 [project.urls]
 Homepage = "https://github.com/mikeriess/synbps"
 Issues = "https://github.com/mikeriess/synbps/issues"

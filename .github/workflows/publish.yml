@@ -26,7 +26,7 @@ jobs:
     - name: Run tests
       run: |
         pip install pytest
-        pytest
+        pytest /tests
 
     - name: Build package
       run: python -m build
