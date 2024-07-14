@@ -1,15 +1,12 @@
 # SynBPS
 [![Downloads](https://static.pepy.tech/badge/synbps)](https://pepy.tech/project/synbps) [![Documentation Status](https://readthedocs.org/projects/synbps/badge/?version=latest)](https://synbps.readthedocs.io/en/latest/?badge=latest)
 
-SynBPS is short for Synthetic Business Process Simulation, as it is intended for the simulation of **synthetic** business processes. Put simply, this framework lets you run experiments across **multiple business processes**, sampled from well-known parametric distributions.
+SynBPS is short for Synthetic Business Process Simulation. The framework is designed to simulate **synthetic** business processes. In a nutshell, this framework lets you run experiments across **multiple business processes**, specified by well-known parametric distributions. See more in the publication: [Riess (2024)](https://journals.sagepub.com/doi/abs/10.1177/00375497241233326)
 
-Publication: [Riess (2024)](https://journals.sagepub.com/doi/abs/10.1177/00375497241233326)
-
-## Whats new?
-- Example notebooks in ```examples/``` folder: 
-	- Full pipeline for a systematic experiment
-	- Generating a single event-log based on parameters alone
-- Separation of functions for experimental design and eve
+## Whats new: Version 1.1.0
+- Example notebooks in ```examples/``` folder
+- Removed dependency on Cython
+- Minor fixes
 
 # Getting Started
 You can install SynBPS using pip:
@@ -19,12 +16,12 @@ You can install SynBPS using pip:
 SynBPS requires pomegranate 0.14.8 and python 3.9 or higher.
 
 ## Example usage
-See the [example notebook](https://github.com/Mikeriess/SynBPS/blob/main/tests/test_pypi.ipynb) for a short demo of SynBPS.
+See the [End-to-end example notebook](https://github.com/Mikeriess/SynBPS/blob/main/examples/simulation_e2e_example.ipynb) for a short demo of SynBPS. Also, please refer to the [Event-log example notebook](https://github.com/Mikeriess/SynBPS/blob/main/examples/event_log_example.ipynb) for an example of how to simulate a single event-log, if you wish to implement this functionality in your own pipeline.
 
 ## Documentation
 See the [official documentation here](https://synbps.readthedocs.io/en/latest/).
 
-# Todos
+# Roadmap
 - Extend HOMC to include h > 4 
 - Add functionality to specify sampling approach of HOMC
 - Add data pre-processing in more formats
