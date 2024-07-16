@@ -53,7 +53,7 @@ def test_basic_simulation():
                     "seed_value":1337
                     }
 
-    from SynBPS.simulation.eventlog import generate_eventlog
+    from SynBPS.simulation.simulate_eventlog import generate_eventlog
 
     log = generate_eventlog(eventlog_settings)
 
