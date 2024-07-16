@@ -9,8 +9,9 @@ Created on Mon Nov  1 15:06:34 2021
 Generation of trace arrival times in a synthetic event-log.
 """
 
-def Generate_trace_arrivals(lambd = 1, n_arrivals=10):
+def Generate_trace_arrivals(lambd = 1, n_arrivals=10, seed_value=1337):
     import numpy as np
+    np.random.seed(seed_value) 
     #initialize
     theta = []
     z = []

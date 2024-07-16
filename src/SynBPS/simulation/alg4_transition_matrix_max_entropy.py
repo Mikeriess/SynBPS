@@ -10,8 +10,10 @@ Generation of transition matrix: Maximum entropy
 """
 
 
-def Generate_transition_matrix_max_ent(D = ["a","b","c"]):
+def Generate_transition_matrix_max_ent(D = ["a","b","c"], seed_value=1337):
     import numpy as np
+    np.random.seed(seed_value) 
+
     import pandas as pd
     
     # Example P0 is one-hot

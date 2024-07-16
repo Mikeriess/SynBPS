@@ -10,8 +10,10 @@ Generation of transition matrix: Minimum entropy
 """
 
 
-def Generate_transition_matrix_min_ent(D = ["a","b","c","d","e"], P0=[]):
+def Generate_transition_matrix_min_ent(D = ["a","b","c","d","e"], P0=[], seed_value=1337):
     import numpy as np
+    np.random.seed(seed_value) 
+
     import pandas as pd
     
  

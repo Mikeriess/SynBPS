@@ -7,7 +7,9 @@ Created on Sat Nov  6 16:46:30 2021
 import numpy as np
 import pandas as pd
 
-def Generate_lambdas(D,t, lambd_range):
+def Generate_lambdas(D,t, lambd_range, seed_value=1337):
+    import numpy as np
+    np.random.seed(seed_value)
     """
     Generate lambda values for capital lambda matrix
     
@@ -31,7 +33,9 @@ def Generate_lambdas(D,t, lambd_range):
 """
 
 
-def Resource_offset(h = 0, m = 0.15, p = 0.5, n = 3):
+def Resource_offset(h = 0, m = 0.15, p = 0.5, n = 3, seed_value=1337):
+    import numpy as np
+    np.random.seed(seed_value)
     """
     
 

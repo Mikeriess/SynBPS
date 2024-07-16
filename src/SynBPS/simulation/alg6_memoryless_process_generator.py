@@ -8,8 +8,9 @@ Created on Tue Nov  2 15:22:42 2021
 def Process_without_memory(D = ["a","b","c","d","e"], 
                         mode = ["min_entropy","max_entropy","med_entropy"][2], 
                         num_traces=2,
-                        num_transitions=5):
+                        num_transitions=5, seed_value=1337):
     import numpy as np
+    np.random.seed(seed_value)
     import pandas as pd
     
     from SynBPS.simulation.alg2_initial_probabilities import GenerateInitialProb

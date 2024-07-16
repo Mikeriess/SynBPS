@@ -34,9 +34,10 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
                                                           4.5,
                                                           5.5,
                                                           6.5]], 
-                                      "Deterministic_offset_u":7}):
-    
+                                      "Deterministic_offset_u":7}, 
+                                      seed_value=1337):
     import numpy as np
+    np.random.seed(seed_value)
     import pandas as pd
     
     from SynBPS.simulation.duration_helpers import Generate_lambdas, Resource_offset, TimeSinceMonday, Deterministic_offset
@@ -48,27 +49,25 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
     """
     
     """
-    Initialization: Generate distributions etc.
-    """
-    
-    
-    #event-log 
-    
+    Initialization: Generate distributions
+    """    
     
     #generate ids for each case
     caseids = list(range(0,len(Theta)))
     
-    #For testing
+    # for lambdas
     max_trace_length = max(len(x) for x in Theta)
     
     # Generate duration distributions
     Lambd = Generate_lambdas(D=D, 
                              t=max_trace_length, 
-                             lambd_range=settings["activity_duration_lambda_range"])
+                             lambd_range=settings["activity_duration_lambda_range"],
+                             seed_value=seed_value)
     
     # Generate arrival times
     theta_time, z = Generate_trace_arrivals(lambd = settings["inter_arrival_time"], 
-                                            n_arrivals=len(caseids))
+                                            n_arrivals=len(caseids),
+                                            seed_value=seed_value)
     
     
     # All time-information generated is stored here
@@ -142,7 +141,8 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
             h_t = Resource_offset(h = 0, 
                                     m = settings["resource_availability_m"], 
                                     p = settings["resource_availability_p"], 
-                                    n = settings["resource_availability_n"])
+                                    n = settings["resource_availability_n"],
+                                    seed_value=seed_value)
             H.append(h_t)
 
 

@@ -9,7 +9,7 @@ Created on Tue Nov  2 09:35:33 2021
 def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
                                        n_tranitions=3,
                                        limit_trials=1000,
-                                       kappa = 2):
+                                       kappa = 2,seed_value=1337):
     """
     Parameters
     ----------
@@ -32,6 +32,8 @@ def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
 
     """
     import sys
+    import numpy as np
+    np.random.seed(seed_value) 
 
     #error handling
     if len(D) < n_tranitions:

@@ -5,8 +5,10 @@ Created on Mon Nov  1 17:21:24 2021
 @author: Mike
 """
 
-def GenerateInitialProb(D=["a","b"], p0_type="regular"):
+def GenerateInitialProb(D=["a","b"], p0_type="regular", seed_value=1337):
     import numpy as np
+    np.random.seed(seed_value) 
+
     import pandas as pd
     
     if p0_type == "min_entropy":

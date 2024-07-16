@@ -10,8 +10,10 @@ def Process_with_memory(D = ["a","b","c","d","e"],
                                     num_traces=2, 
                                     sample_len=100,
                                     K=2,
-                                    num_transitions=5):
+                                    num_transitions=5, 
+                                    seed_value=1337):
     import numpy as np
+    np.random.seed(seed_value)
     import pandas as pd
     import sys
     
@@ -27,11 +29,13 @@ def Process_with_memory(D = ["a","b","c","d","e"],
     
     # Generate the model
     from SynBPS.simulation.alg2_initial_probabilities import GenerateInitialProb
-    from SynBPS.simulation.HOMC.homc_helpers import create_homc
+    from SynBPS.simulation.HOMC.MarkovChain import create_homc
 
     
     #generate initial probabilities
-    probabilities = GenerateInitialProb(D_abs, p0_type=mode)    
+    probabilities = GenerateInitialProb(D_abs, 
+                                        p0_type=mode, 
+                                        seed_value=seed_value)    
     P0 = {}
     
     for i in range(0,len(D_abs)):
@@ -40,7 +44,12 @@ def Process_with_memory(D = ["a","b","c","d","e"],
 
     #print("mode",mode)
     #create the markov chain
-    HOMC = create_homc(D_abs, P0, h=K, mode=mode, n_transitions=num_transitions)
+    HOMC = create_homc(D_abs, 
+                        P0, 
+                        h=K, 
+                        mode=mode, 
+                        n_transitions=num_transitions, 
+                        seed_value=seed_value)
     
     ##### Part 2: Draw from the distributions
     while len(Theta) != num_traces:
