@@ -1,6 +1,6 @@
 [project]
 name = "SynBPS"
-version = "1.0.8a"
+version = "1.0.9.1"
 authors = [
   { name="Mike Riess", email="mike@riess.no" },
 ]

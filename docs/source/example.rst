@@ -17,24 +17,25 @@ Example use-case
 Here the settings for the experiments can be modified in the dictionary called run_settings. Refer to the paper for more details on of each of the parameters.
 
 .. code-block:: python
-
-    run_settings = {# level of entropy: min, medium and/or max
-                "process_entropy":["min_entropy","med_entropy","max_entropy"],
+    # dictionary consisting of all desired settings for each factor
+    run_settings = {
+                # level of entropy: min, medium and/or max
+                "process_entropy":["min_entropy"], #,"med_entropy","max_entropy"
                 
                 # number of traces/cases in the event-log
-                "number_of_traces":[1000],
+                "number_of_traces":[500],
 
                 # number of activity types
-                "statespace_size":[5, 10], 
+                "statespace_size":[5], 
 
                 # first or higher-order markov chain to represent the transitions
-                "process_type":["memoryless","memory"], 
+                "process_type":["memoryless"], 
                 
                 # order of HOMC - only specify this when using process with memory
-                "process_memory":[2, 4],
+                "process_memory":[2],
                 
                 # number of transitions - only used for medium entropy (should be higher than 2 and < statespace size)
-                "med_ent_n_transitions":[3, 5],
+                "med_ent_n_transitions":[1,2,3,4,5],
                                 
                 # lambda parameter of inter-arrival times
                 "inter_arrival_time":[1.5],
@@ -52,10 +53,10 @@ Here the settings for the experiments can be modified in the dictionary called r
                 "resource_availability_m":[0.041],
                 
                 # variation between activity durations
-                "activity_duration_lambda_range":[1, 5],
+                "activity_duration_lambda_range":[1],
                 
                 # business hours definition: when can cases be processed? ()
-                "Deterministic_offset_W":["weekdays", "all-week"],
+                "Deterministic_offset_W":["weekdays"],
 
                 # time-unit for a full week: days = 7, hrs = 24*7, etc.
                 "Deterministic_offset_u":[7],
@@ -63,22 +64,28 @@ Here the settings for the experiments can be modified in the dictionary called r
                 # training data format (See Verenich et al., 2019): 
                 # True - use first event to predict total cycle-time. 
                 # False - use Prefix-log format / each event to predict remaining cycle time.
-                "first_state_model":[True],
+                "first_state_model":[False],
 
-                # offset for the timestamps used (1970 time after 1970)
-                "datetime_offset":[35],
+                # offset for the timestamps used (years after 1970)
+                "datetime_offset":[45],
                 
-                # number of repetitions of the experiments: duplicates the experiment table (2 times here)
-                "num_replications":list(range(0, 2))
-               }
+                # number of repetitions of the experiments: duplicates the experiment table (5 times here)
+                "num_replications":list(range(0, 5))
+            }
 
 
     # import the make_design_table function to generate a full factorial experimental design table
-    from SynBPS.simulation.DoE import make_design_table
-    df = make_design_table(run_settings, file="data/design_table.csv")
+    from SynBPS.design.DoE import make_design_table
+    df = make_design_table(run_settings)
+
+    # give each run its own seed value such that results are different across runs
+    df["seed_value"] = range(0,len(df))
+
+    # store the design table
+    df.to_csv("data/design_table.csv", index=False)
 
     # inspect the resulting design table
-    df
+    df.head()
 
 2. Specify Train() and Test() functions
 Before running the experiments, you need to define model training and evaluation functions.
@@ -90,6 +97,8 @@ Input for the **training_function** is a dictionary named **input_data**, which 
 * x_test
 * y_train
 * y_test
+
+The default behavior of the data preparation is a temporal split with 70 percent of the data in train and 30 in the test set. Feel free to modify the data preparation steps in dataprep/prepare.py
 
 .. code-block:: python
 
@@ -156,11 +165,14 @@ Output is an **inference table** containing predictions and actual target values
         return metrics
 
 3. Run experiments
-
+The experiments can be run using the **run_experiments** function, which takes the training function and evaluation function specified above as its first two arguments. Next, the output directory of the data created during the experiments needs to be specified (here we use **data/**), followed by the destination file to store the results, and the input design table created in step 1 of this guide. 
 .. code-block:: python
 
-    # Run experiments
+
+    # function to run a set of experiments
     from SynBPS.simulation.simulation_pipeline import run_experiments
+
+    # run experiments
     results = run_experiments(training_function, 
                             eval_function, 
                             output_dir="data/",
@@ -168,8 +180,27 @@ Output is an **inference table** containing predictions and actual target values
                             design_table="design_table.csv")
 
 4. Analyze results
+Firstly we load the results table which contain aggregated metrics based on the individual runs. This can then be plotted and analyzed in any manner desired.
 
 .. code-block:: python
 
-    # This is still a work in progress, however the results will be placed in output_dir
-    # and can be analyzed using pandas or other tools.
+    import pandas as pd
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+
+    # Load the results
+    df = pd.read_csv("data/results.csv")
+
+    # Create boxplot
+    sns.boxplot(data=df, x='med_ent_n_transitions', y='TEST_R2')
+
+    # Calculate medians and plot lines
+    medians = df.groupby(['med_ent_n_transitions'])['TEST_R2'].median().values
+    n = len(medians)
+    sns.lineplot(x=range(n), y=medians, sort=False)
+
+    # Set title and y-axis range
+    plt.title('Boxplot with Median Lines')
+    plt.ylim(0, 1)
+
+    plt.show()

@@ -14,20 +14,22 @@ def prefix_data(log, verbose=False):
 
     #format
     df = InitialFormatting(log, maxcases=1000000, dateformat="%Y-%m-%d %H:%M:%S")#"%Y-%M-%d %H:%m:%ss")
+    df['time'] = df['time'].dt.strftime("%Y-%m-%d %H:%M:%S")
     df.index = list(range(0,len(df)))
 
-    #convert back ??? lol why not
-    df['time'] = df['time'].dt.strftime("%Y-%m-%d %H:%M:%S")
 
     # get max trace length in the log
     max_length = GetFileInfo(df)
     
-    splitmode = "event"
-    print("mode:",splitmode)
-    print("=======================================")
+    # temporal split based on events or cases
+    splitmode =  ["event", "case"][0] 
+
+    if verbose == True:
+        print("mode:",splitmode)
+        print("=======================================")
     
     # make split criteria
-    split_criterion = MakeSplitCriterion(df, trainsize=0.5, mode=splitmode) # "event", "case"
+    split_criterion = MakeSplitCriterion(df, trainsize=0.7, mode=splitmode) #
     
     # generate the train data: target etc.
     X, y, y_a, y_t, cases, y_a_varnames = GenerateTrainData(df,
@@ -74,8 +76,9 @@ def prefix_data(log, verbose=False):
 
     Inference_train = Inference.loc[Inference.trainset==True].drop("trainset",axis=1)
     Inference_test = Inference.loc[Inference.trainset==False].drop("trainset",axis=1)
-    print("Inference train:",len(Inference_train))
-    print("Inference test: ",len(Inference_test))
+    if verbose == True:
+        print("Inference train:",len(Inference_train))
+        print("Inference test: ",len(Inference_test))
     
     #collect all datasets
     Input_data={"x_train":X_train,
