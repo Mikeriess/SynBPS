@@ -7,10 +7,10 @@ def test_basic_simulation():
                     "number_of_traces":100,
 
                     # level of entropy: min, medium and/or max
-                    "process_entropy": "min_entropy",#"min_entropy","med_entropy","max_entropy"
+                    "process_entropy": "med_entropy",#"min_entropy","med_entropy","max_entropy"
 
                     # first or higher-order markov chain to represent the transitions "memoryless", "memory"
-                    "process_type":"memoryless",
+                    "process_type":"memory",#"memoryless",
 
                     # order of the HOMC - only specify this when using process with memory
                     "process_memory":2,
@@ -48,12 +48,13 @@ def test_basic_simulation():
                     # offset for the timestamps used (years after 1970)
                     "datetime_offset":54,
 
-                    # experiment identifier used when storing event-log
-                    "idx":0,
+                    # seed value for replication: Set this to a fixed value if the results should be reproducible
+                    #"seed_value":int(np.random.uniform(low=0, high=2**32 - 1))
+                    "seed_value":1337
                     }
 
-    from SynBPS.simulation.simulation_pipeline import generate_eventlog
+    from SynBPS.simulation.eventlog import generate_eventlog
 
-    log = generate_eventlog(eventlog_settings, output_dir="")
+    log = generate_eventlog(eventlog_settings)
 
     assert len(log) > 100
