@@ -28,8 +28,8 @@ def Process_with_memory(D = ["a","b","c","d","e"],
     
     
     # Generate the model
-    from SynBPS.simulation.alg2_initial_probabilities import GenerateInitialProb
-    from SynBPS.simulation.HOMC.MarkovChain import create_homc
+    from SynBPS.simulation.Memoryless_process.alg2_initial_probabilities import GenerateInitialProb
+    from SynBPS.simulation.Memory_process.MarkovChain import create_homc
 
     
     #generate initial probabilities

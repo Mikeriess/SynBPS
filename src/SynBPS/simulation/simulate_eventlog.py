@@ -59,7 +59,7 @@ def generate_eventlog(curr_settings):
     
     from SynBPS.simulation.alg6_memoryless_process_generator import Process_without_memory
     from SynBPS.simulation.alg7_memory_process_generator import Process_with_memory
-    from SynBPS.simulation.alg9_trace_durations import Generate_time_variables
+    from SynBPS.simulation.Duration.alg9_trace_durations import Generate_time_variables
     
     """
     Simulation pipeline:

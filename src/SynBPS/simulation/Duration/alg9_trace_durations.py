@@ -40,8 +40,8 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
     np.random.seed(seed_value)
     import pandas as pd
     
-    from SynBPS.simulation.duration_helpers import Generate_lambdas, Resource_offset, TimeSinceMonday, Deterministic_offset
-    from SynBPS.simulation.alg1_trace_arrivals import Generate_trace_arrivals
+    from SynBPS.simulation.Duration.duration_helpers import Generate_lambdas, Resource_offset, TimeSinceMonday, Deterministic_offset
+    from SynBPS.simulation.Arrival.alg1_trace_arrivals import Generate_trace_arrivals
     
     
     """

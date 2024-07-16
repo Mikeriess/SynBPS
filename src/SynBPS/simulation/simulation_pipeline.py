@@ -34,15 +34,15 @@ def run_experiments(training_function, eval_function, output_dir="data/", out_fi
             start_time = time.time()
     
             # generate the log
-            from SynBPS.simulation.eventlog import generate_eventlog
+            from SynBPS.simulation.simulate_eventlog import generate_eventlog
             log = generate_eventlog(curr_settings=curr_settings)
 
             stop_time = time.time()
             
             # store it
             if output_dir is not None:
-                log.to_csv(output_dir+str(run)+"_Eventlog_"+process_entropy+"_"+process_type+".csv", index=False)
-                print("eventlog saved to:",output_dir+str(run)+"_Eventlog_"+process_entropy+"_"+process_type+".csv")
+                log.to_csv(output_dir+"run_"+str(run)+"_eventlog.csv", index=False)
+                print("eventlog saved to:",output_dir+"run_"+str(run)+"_eventlog.csv")
     
     
             # store metrics from simulated log

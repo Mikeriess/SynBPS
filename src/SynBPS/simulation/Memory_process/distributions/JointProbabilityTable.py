@@ -4,8 +4,8 @@ import math
 from math import exp as cexp, log as _log, isnan
 
 import itertools as it
-from SynBPS.simulation.HOMC.distributions.DiscreteDistribution import DiscreteDistribution
-from SynBPS.simulation.HOMC.distributions.Distribution import MultivariateDistribution, Distribution
+from SynBPS.simulation.Memory_process.distributions.DiscreteDistribution import DiscreteDistribution
+from SynBPS.simulation.Memory_process.distributions.Distribution import MultivariateDistribution, Distribution
  
 
 def _log(x):

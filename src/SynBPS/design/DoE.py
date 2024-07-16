@@ -114,7 +114,7 @@ def build_full_fact(factor_level_ranges):
     
     return df
 
-def make_design_table(run_settings, file="design_table.csv"):
+def make_design_table(run_settings):
     """
     Creates an experiment table and stores it as a CSV
     """
@@ -136,9 +136,5 @@ def make_design_table(run_settings, file="design_table.csv"):
 
     #change types
     df.statespace_size = df.statespace_size.astype(int)
-
-    # save the design table 
-    print("saved to",file)
-    df.to_csv(file, index=False)
 
     return df

@@ -2,9 +2,9 @@ import numpy
 import json
 import itertools as it
 
-from SynBPS.simulation.HOMC.distributions.Distribution import Distribution
-from SynBPS.simulation.HOMC.distributions.DiscreteDistribution import DiscreteDistribution
-from SynBPS.simulation.HOMC.distributions.ConditionalProbabilityTable import ConditionalProbabilityTable
+from SynBPS.simulation.Memory_process.distributions.Distribution import Distribution
+from SynBPS.simulation.Memory_process.distributions.DiscreteDistribution import DiscreteDistribution
+from SynBPS.simulation.Memory_process.distributions.ConditionalProbabilityTable import ConditionalProbabilityTable
 
 class MarkovChain(object):
     """A Markov Chain.
@@ -437,90 +437,76 @@ def create_homc(states, h0, h=2, mode="max_entropy", n_transitions=5, seed_value
     import numpy as np
     np.random.seed(seed_value)
         
-    from SynBPS.simulation.HOMC.MarkovChain import cartesian_product, combine_to_list, modify_rules, generate_condprob
+    from SynBPS.simulation.Memory_process.MarkovChain import cartesian_product, combine_to_list, modify_rules, generate_condprob
 
-    from SynBPS.simulation.HOMC.distributions.ConditionalProbabilityTable import ConditionalProbabilityTable
-    from SynBPS.simulation.HOMC.distributions.DiscreteDistribution import DiscreteDistribution
-    from SynBPS.simulation.HOMC.MarkovChain import MarkovChain
+    from SynBPS.simulation.Memory_process.distributions.ConditionalProbabilityTable import ConditionalProbabilityTable
+    from SynBPS.simulation.Memory_process.distributions.DiscreteDistribution import DiscreteDistribution
+    from SynBPS.simulation.Memory_process.MarkovChain import MarkovChain
     
     
     ######################################
     # P1
     
     #for each link
-    c = cartesian_product(states, states)
-    d = combine_to_list(c)
+    #c = cartesian_product(states, states)
+    #d = combine_to_list(c)
     
     #final steps
-    g = modify_rules(d, states)
-    p1_input = generate_condprob(g, states, mode, n_transitions, seed_value)
+    #g = modify_rules(d, states)
+    #p1_input = generate_condprob(g, states, mode, n_transitions, seed_value)
     
     ######################################
     # P2
     
     #for each link
-    c = cartesian_product(states, states)
-    d = combine_to_list(c)
+    #c = cartesian_product(states, states)
+    #d = combine_to_list(c)
     
-    e = cartesian_product(c, states)
-    f = combine_to_list(e)
+    #e = cartesian_product(c, states)
+    #f = combine_to_list(e)
     
     #final steps
-    g = modify_rules(f, states)
-    p2_input = generate_condprob(g, states, mode, n_transitions, seed_value)
+    #g = modify_rules(f, states)
+    #p2_input = generate_condprob(g, states, mode, n_transitions, seed_value)
     
     ######################################    
     # P3
     
     #for each link
-    c = cartesian_product(states, states)
-    d = combine_to_list(c)
+    #c = cartesian_product(states, states)
+    #d = combine_to_list(c)
     
-    e = cartesian_product(c, d)
-    f = combine_to_list(e)
+    #e = cartesian_product(c, d)
+    #f = combine_to_list(e)
     
     #final steps
-    g = modify_rules(f, states)
-    p3_input = generate_condprob(g, states, mode, n_transitions, seed_value)
+    #g = modify_rules(f, states)
+    #p3_input = generate_condprob(g, states, mode, n_transitions, seed_value)
     
     ######################################    
     # P4
     
     #for each link
-    c = cartesian_product(states, states)
-    d = combine_to_list(c)
+    #c = cartesian_product(states, states)
+    #d = combine_to_list(c)
     
-    e = cartesian_product(c, d)
-    f = combine_to_list(e)
+    #e = cartesian_product(c, d)
+    #f = combine_to_list(e)
     
-    e = cartesian_product(f, states)
-    f = combine_to_list(e)
+    #e = cartesian_product(f, states)
+    #f = combine_to_list(e)
     
     #final steps
-    g = modify_rules(f, states)
-    p4_input = generate_condprob(g, states, mode, n_transitions, seed_value)
+    #g = modify_rules(f, states)
+    #p4_input = generate_condprob(g, states, mode, n_transitions, seed_value)
 
     ######################################    
     # P5
     
-    #for each link
-    c = cartesian_product(states, states)
-    d = combine_to_list(c)
-    
-    e = cartesian_product(c, d)
-    f = combine_to_list(e)
-    
-    e = cartesian_product(f, states)
-    f = combine_to_list(e)
-    
-    #final steps
-    g = modify_rules(f, states)
-    p4_input = generate_condprob(g, states, mode, n_transitions, seed_value)
 
     """
-    Input generated tables to pomegranate
-    """
-    #from pomegranate import DiscreteDistribution, ConditionalProbabilityTable, MarkovChain
+    Input generated tables to MarkovChain class
+    
     
     if h == 1:
         p0 = DiscreteDistribution(h0)
@@ -567,5 +553,49 @@ def create_homc(states, h0, h=2, mode="max_entropy", n_transitions=5, seed_value
     if h > 4:
         print("h > 4 not supported yet - please create an issue on github")
         HOMC = 0
-    
+    """
+
+    # Generate conditional probability tables for h-order markov chains
+    def recursive_state_process(states, mode, n_transitions, iterations, seed_value=1337):
+        def process_iteration(iter_num):
+            if iter_num == 1:
+                # Base case: P1 process
+                c = cartesian_product(states, states)
+                d = combine_to_list(c)
+                g = modify_rules(d, states)
+                return generate_condprob(g, states, mode, n_transitions, seed_value)
+            else:
+                # Recursive case: build on previous iteration
+                prev_result = process_iteration(iter_num - 1)
+                prev_states = [item[:-1] for item in prev_result]  # Remove probabilities
+                c = cartesian_product(prev_states, states)
+                d = combine_to_list(c)
+                g = modify_rules(d, states)
+                return generate_condprob(g, states, mode, n_transitions, seed_value)
+        return process_iteration(iterations)
+
+
+    # Start by converting the initial probabilities
+    p0 = DiscreteDistribution(h0)
+
+    # Initiate the list of distributions
+    distributions = [p0]
+
+    # Run the recursive generation of distribution tables to append
+    for order in range(0, h-1):
+        if order == 0:
+            p_i_input = recursive_state_process(states, mode, n_transitions, iterations=h, seed_value=seed_value)
+
+            p_i = ConditionalProbabilityTable(p_i_input, [p0])
+            distributions.append(p_i)
+        else:
+            p_i_input = recursive_state_process(states, mode, n_transitions, iterations=h, seed_value=seed_value)
+
+            p_i = ConditionalProbabilityTable(p_i_input, distributions[-1])
+
+            distributions.append(p_i)
+
+
+    HOMC = MarkovChain(distributions, random_state=seed_value)
+
     return HOMC

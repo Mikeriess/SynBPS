@@ -2,8 +2,8 @@ import numpy as np
 import numbers
 import itertools as it
 
-from SynBPS.simulation.HOMC.distributions.JointProbabilityTable import JointProbabilityTable
-from SynBPS.simulation.HOMC.distributions.Distribution import MultivariateDistribution
+from SynBPS.simulation.Memory_process.distributions.JointProbabilityTable import JointProbabilityTable
+from SynBPS.simulation.Memory_process.distributions.Distribution import MultivariateDistribution
 
 import math
 
