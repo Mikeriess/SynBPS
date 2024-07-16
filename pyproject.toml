@@ -1,6 +1,6 @@
 [project]
 name = "SynBPS"
-version = "1.0.7"
+version = "1.0.8"
 authors = [
   { name="Mike Riess", email="mike@riess.no" },
 ]
@@ -24,7 +24,7 @@ classifiers = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-python_files = ["test_simulation.py"]
+python_files = ["test_eventlog.py", "test_seed.py"]
 
 [project.urls]
 Homepage = "https://github.com/mikeriess/synbps"
