@@ -12,7 +12,6 @@ SynBPS is short for Synthetic Business Process Simulation. This framework is des
 	- ```Design``` for generating a DoE
 	- ```Simulation``` for functions related to event-log generation
 	- ```Dataprep``` for functions related to data-preparation for ML models (prefix-log, temporal splitting etc.,)
-- Removed dependency on Cython
 - Other minor fixes
 
 **Please note:** Version 1.1.0** introduces new parameters and different function locations. Users are therefore advised to refer to the example notebooks in ```examples/``` folder for examples.

@@ -13,10 +13,11 @@ SynBPS is designed to be used in the following manner:
 Example use-case
 ------------------
 
-1. Generate design table
+1. **Generate design table**
 Here the settings for the experiments can be modified in the dictionary called run_settings. Refer to the paper for more details on of each of the parameters.
 
 .. code-block:: python
+
     # dictionary consisting of all desired settings for each factor
     run_settings = {
                 # level of entropy: min, medium and/or max
@@ -73,7 +74,6 @@ Here the settings for the experiments can be modified in the dictionary called r
                 "num_replications":list(range(0, 5))
             }
 
-
     # import the make_design_table function to generate a full factorial experimental design table
     from SynBPS.design.DoE import make_design_table
     df = make_design_table(run_settings)
@@ -87,7 +87,7 @@ Here the settings for the experiments can be modified in the dictionary called r
     # inspect the resulting design table
     df.head()
 
-2. Specify Train() and Test() functions
+2. **Specify Train() and Test() functions**
 Before running the experiments, you need to define model training and evaluation functions.
 
 In this example we train a first state model, which is a model using only the first observed event (state) to predict to total cycle-time. The default data preparation will result in a prefix-log, which can be used to predict remaining cycle-time from every observed event in the trace.
@@ -164,10 +164,9 @@ Output is an **inference table** containing predictions and actual target values
         print(metrics)
         return metrics
 
-3. Run experiments
+3. **Run experiments**
 The experiments can be run using the **run_experiments** function, which takes the training function and evaluation function specified above as its first two arguments. Next, the output directory of the data created during the experiments needs to be specified (here we use **data/**), followed by the destination file to store the results, and the input design table created in step 1 of this guide. 
 .. code-block:: python
-
 
     # function to run a set of experiments
     from SynBPS.simulation.simulation_pipeline import run_experiments
@@ -179,7 +178,7 @@ The experiments can be run using the **run_experiments** function, which takes t
                             out_file="results.csv", 
                             design_table="design_table.csv")
 
-4. Analyze results
+4. **Analyze results**
 Firstly we load the results table which contain aggregated metrics based on the individual runs. This can then be plotted and analyzed in any manner desired.
 
 .. code-block:: python
