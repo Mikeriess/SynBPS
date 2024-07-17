@@ -9,7 +9,7 @@ import pandas as pd
 
 def Generate_lambdas(D,t, lambd_range, seed_value=1337):
     import numpy as np
-    np.random.seed(seed_value)
+    #np.random.seed(seed_value)
     """
     Generate lambda values for capital lambda matrix
     
@@ -35,7 +35,7 @@ def Generate_lambdas(D,t, lambd_range, seed_value=1337):
 
 def Resource_offset(h = 0, m = 0.15, p = 0.5, n = 3, seed_value=1337):
     import numpy as np
-    np.random.seed(seed_value)
+    #np.random.seed(seed_value)
     """
     
 

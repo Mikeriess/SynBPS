@@ -35,13 +35,15 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
                                                           5.5,
                                                           6.5]], 
                                       "Deterministic_offset_u":7}, 
+                                      custom_distribution=None,
                                       seed_value=1337):
     import numpy as np
-    np.random.seed(seed_value)
+    #np.random.seed(seed_value)
     import pandas as pd
     
     from SynBPS.simulation.Duration.duration_helpers import Generate_lambdas, Resource_offset, TimeSinceMonday, Deterministic_offset
     from SynBPS.simulation.Arrival.alg1_trace_arrivals import Generate_trace_arrivals
+
     
     
     """
@@ -64,11 +66,19 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
                              lambd_range=settings["activity_duration_lambda_range"],
                              seed_value=seed_value)
     
+    # check for custom distributions
+    if custom_distribution is not None:
+        # load from csv
+        Lambd = pd.read_csv(custom_distribution["Lambda"])
+        Lambd.columns = D
+
+        if len(Lambd) < max_trace_length:
+            raise("T-axis of Lambd is < the maximal trace length. Please specify a larger Lambda matrix.")
+    
     # Generate arrival times
     theta_time, z = Generate_trace_arrivals(lambd = settings["inter_arrival_time"], 
                                             n_arrivals=len(caseids),
                                             seed_value=seed_value)
-    
     
     # All time-information generated is stored here
     Y_container = []
@@ -81,10 +91,6 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
         #Remove absorption state from trace (duration=0)
         #trace.remove("END")
         trace = list(filter(lambda a: a != "END", trace))
-        
-        """
-        Should the END state be removed here?
-        """
         
         # Arrival-time relative to the beginning of the timeline
         z_i = z[idx]
@@ -179,8 +185,6 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
             # Append to final data
             S.append(s_t)
             
-            
-            
             """
             DURATION
             """
@@ -189,7 +193,7 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
             lambdavalue = Lambd[e_t].loc[t]
             
             # Generate the activity duration
-            v_t = np.random.exponential(scale=lambdavalue,size=1)[0]
+            v_t = np.random.exponential(scale=lambdavalue, size=1)[0]
             V.append(v_t)
                        
             """

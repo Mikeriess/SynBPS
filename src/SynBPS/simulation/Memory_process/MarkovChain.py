@@ -357,7 +357,7 @@ def modify_rules(parent, states):
 
 def generate_condprob(parent, states, mode="max_entropy", n_transitions=5, seed_value=1337):
     import numpy as np
-    np.random.seed(seed_value)
+    #np.random.seed(seed_value)
 
     #append probabilities to each row in the condition table
     condprob=[]
@@ -435,7 +435,7 @@ def generate_condprob(parent, states, mode="max_entropy", n_transitions=5, seed_
 
 def create_homc(states, h0, h=2, mode="max_entropy", n_transitions=5, seed_value=1337):
     import numpy as np
-    np.random.seed(seed_value)
+    #np.random.seed(seed_value)
         
     from SynBPS.simulation.Memory_process.MarkovChain import cartesian_product, combine_to_list, modify_rules, generate_condprob
 

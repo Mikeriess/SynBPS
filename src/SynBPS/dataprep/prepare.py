@@ -13,7 +13,7 @@ def prefix_data(log, verbose=False):
                  "activity":"event"}, axis='columns')
 
     #format
-    df = InitialFormatting(log, maxcases=1000000, dateformat="%Y-%m-%d %H:%M:%S")#"%Y-%M-%d %H:%m:%ss")
+    df = InitialFormatting(log, maxcases=1000000, dateformat="%Y-%m-%d %H:%M:%S", verbose=False)#"%Y-%M-%d %H:%m:%ss")
     df['time'] = df['time'].dt.strftime("%Y-%m-%d %H:%M:%S")
     df.index = list(range(0,len(df)))
 

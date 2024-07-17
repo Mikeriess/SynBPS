@@ -13,7 +13,7 @@ def Process_with_memory(D = ["a","b","c","d","e"],
                                     num_transitions=5, 
                                     seed_value=1337):
     import numpy as np
-    np.random.seed(seed_value)
+    #np.random.seed(seed_value)
     import pandas as pd
     import sys
     

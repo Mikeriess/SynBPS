@@ -1,12 +1,12 @@
 
-def generate_eventlog(curr_settings):
+def generate_eventlog(curr_settings, verbose=False):
     """
     Generates an event log based on specified parameters.
 
     Args:
         curr_settings (dict): A dictionary containing the following keys:
             number_of_traces (int): Number of traces/cases in the event log.
-            process_entropy (str): Level of entropy. Options: "min_entropy", "med_entropy", "max_entropy".
+            process_entropy (str): Level of entropy. Options: "min_entropy", "med_entropy", "max_entropy" or "custom" for custom_distribution (see below).
             process_type (str): Type of Markov chain. Options: "memoryless", "memory".
             process_memory (int): Order of the Higher-Order Markov Chain (HOMC). Only used when process_type is "memory".
             statespace_size (int): Number of activity types.
@@ -20,17 +20,28 @@ def generate_eventlog(curr_settings):
             Deterministic_offset_W (str): Business hours definition. Example: "weekdays".
             Deterministic_offset_u (int): Time unit for a full week (e.g., 7 for days, 168 for hours).
             datetime_offset (int): Offset for timestamps in years after 1970.
-            seed_value (int): Seed value for random number generation. This can be used to 
+            seed_value (int): Seed value for random number generation.
+            custom_distributions(dict): (Default: None) Dictionary with filenames for custom initial probabilities, transition matrix and duration distribution. Example usage: {"p0":"data/p0.csv", "p":"data/p.csv","Lambda":"data/lambda.csv"}
 
     Returns:
         Pandas dataframe with the simulated event-log
     """
 
+    # check for custom distributions
+    if "custom_distributions" not in curr_settings:
+        custom_dist = None
+    if "custom_distributions" in curr_settings:
+        print("Using custom distributions:\n", curr_settings["custom_distributions"])
+        custom_dist = curr_settings["custom_distributions"]
+        if curr_settings["process_entropy"] != "custom":
+            raise("Custom distributions have been specified, but process entropy is set to min, med or max. Please remove custom_distributions or set process_entropy to 'custom'")
+
     # set the seed 
     from numpy.random import seed
     
     seed_val = int(curr_settings["seed_value"])
-    print("seed:",seed_val)
+    if verbose==True:
+        print("seed:",seed_val)
     seed(seed_val)
 
     from SynBPS.simulation.simulation_helpers import make_D, make_workweek
@@ -53,7 +64,6 @@ def generate_eventlog(curr_settings):
     
     datetime_offset = int(curr_settings["datetime_offset"])
     
-    
     import pandas as pd
     import numpy as np
     
@@ -67,6 +77,8 @@ def generate_eventlog(curr_settings):
 
     # Generate an event-log
     if process_type == "memory":
+        if "custom_distributions" in curr_settings:
+            raise Exception("Cannot use custom distribution with memory process. Change to memoryless or set custom_distributions to None")
 
         # HOMC not valid for min_entropy, as this is a deterministic process
         if process_entropy == "min_entropy":
@@ -86,16 +98,19 @@ def generate_eventlog(curr_settings):
         Theta, Phi = Process_without_memory(D = statespace, 
                                 mode = process_entropy, 
                                 num_traces=number_of_traces, 
+                                custom_distribution=custom_dist,
                                 seed_value=seed_val)
         
         
     # print number of traces
-    print("traces:",len(Theta))
+    if verbose==True:
+        print("traces:",len(Theta))
     
     # Generate time objects
     Y_container, Lambd, theta_time = Generate_time_variables(Theta = Theta,
                                                             D = statespace,
                                                             settings = time_settings, 
+                                                            custom_distribution=custom_dist,
                                                             seed_value=seed_val)
     
     #loop over all the traces
@@ -196,8 +211,9 @@ def generate_eventlog(curr_settings):
     evlog_df['start_day'] = evlog_df['start_datetime'].dt.day_name()
     evlog_df['start_hour'] = evlog_df['start_datetime'].apply(lambda x: x.hour)
     
-    print("events:",len(evlog_df))
-    print("ids:",len(evlog_df.caseid.unique()))
+    if verbose==True:
+        print("events:",len(evlog_df))
+        print("ids:",len(evlog_df.caseid.unique()))
     return evlog_df
 
 ###########

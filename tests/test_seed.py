@@ -56,9 +56,9 @@ def test_basic_simulation():
     from SynBPS.simulation.simulate_eventlog import generate_eventlog
 
     # create the first log using seed
-    log = generate_eventlog(eventlog_settings)
+    log = generate_eventlog(eventlog_settings, verbose=True)
 
     # create the second log using seed
-    log2 = generate_eventlog(eventlog_settings)
+    log2 = generate_eventlog(eventlog_settings, verbose=True)
 
     assert len(log) == len(log2)

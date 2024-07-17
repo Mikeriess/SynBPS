@@ -33,7 +33,7 @@ def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
     """
     import sys
     import numpy as np
-    np.random.seed(seed_value) 
+    #np.random.seed(seed_value) 
 
     #error handling
     if len(D) < n_tranitions:

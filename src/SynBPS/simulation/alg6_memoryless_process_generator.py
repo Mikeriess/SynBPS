@@ -6,11 +6,14 @@ Created on Tue Nov  2 15:22:42 2021
 """
 
 def Process_without_memory(D = ["a","b","c","d","e"], 
-                        mode = ["min_entropy","max_entropy","med_entropy"][2], 
+                        mode = ["min_entropy","max_entropy","med_entropy", "custom"][2], 
                         num_traces=2,
-                        num_transitions=5, seed_value=1337):
+                        num_transitions=5, 
+                        custom_distribution=None,
+                        seed_value=1337):
+    
     import numpy as np
-    np.random.seed(seed_value)
+    #np.random.seed(seed_value)
     import pandas as pd
     
     from SynBPS.simulation.Memoryless_process.alg2_initial_probabilities import GenerateInitialProb
@@ -46,10 +49,27 @@ def Process_without_memory(D = ["a","b","c","d","e"],
         P0 = GenerateInitialProb(D, p0_type="med_entropy")
         P = Generate_transition_matrix_med_ent(D, n_tranitions=num_transitions)
         P.index = D_abs
+
+    if mode =="custom":
+        if mode == "custom" and custom_distribution is None:
+            raise("Cannot use custom distributions if these are not specified in custom_distributions(dict)")
+        #initial probabilities
+        P0 = pd.read_csv(custom_distribution["p0"])["p0"].tolist()
+        if len(P0) != len(D):
+            raise("P0 length does not match the statespace size D")
+        
+        #transition matrix
+        P = pd.read_csv(custom_distribution["p"])
+        if len(P) != len(D_abs):
+            raise("P row length does not match the statespace size D (incl. abs. state)")
+        if len(P.columns) != len(D_abs):
+            raise("P col length does not match the statespace size D (incl. abs. state)")
+        P.columns = D_abs
+        P.index = D_abs
+
     
     # Transition matrices
     Phi = [P0, P]
-    
         
     for trace in list(range(0,repetitions)):
             
@@ -80,7 +100,3 @@ def Process_without_memory(D = ["a","b","c","d","e"],
 
         Theta.append(sigma)
     return Theta, Phi
-
-#Theta, Phi = Process_without_memory(D = ["a","b","c","d","e"], 
-#                        mode = ["min_entropy","max_entropy","med_entropy"][2], 
-#                        num_traces=10)

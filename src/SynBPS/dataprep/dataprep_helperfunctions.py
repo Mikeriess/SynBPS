@@ -15,8 +15,9 @@ def InitialFormatting(df, maxcases, dateformat, verbose=False):
     casestoload = df["id"].unique().tolist()[0:maxcases]
     df = df.loc[df["id"].isin(casestoload)]
     
-    # find cases to drop due to length
-    print("Cases before dropping len=1:",len(casestoload),"cases",len(df),"rows")
+    if verbose == True:
+        # find cases to drop due to length
+        print("Cases before dropping len=1:",len(casestoload),"cases",len(df),"rows")
     
     # Make function to apply to groups
     def func(sub):
@@ -40,13 +41,15 @@ def InitialFormatting(df, maxcases, dateformat, verbose=False):
     # Drop cases with only one event:
     df = df.loc[df["id"].isin(keepers)]
     
-    print("Cases after dropping len=1:",len(keepers),"cases",len(df),"rows")
+    if verbose == True:
+        print("Cases after dropping len=1:",len(keepers),"cases",len(df),"rows")
   
     #Sort the dataframe by time aftewards
     df['parsed_date'] = pd.to_datetime(df.time, format = dateformat, exact = True)
     
     ##########################################################################
-    print("Sorting by id, date (chronological order)")
+    if verbose == True:
+        print("Sorting by id, date (chronological order)")
     #generate new ID column:
     df = df.assign(id=(df['id']).astype('category').cat.codes)
     
@@ -63,26 +66,28 @@ def InitialFormatting(df, maxcases, dateformat, verbose=False):
     return df
 
 
-def GetFileInfo(df):
-    print("Number of cases in log:",len(df["id"].unique()))
+def GetFileInfo(df, verbose=False):
+    if verbose == True:
+        print("Number of cases in log:",len(df["id"].unique()))
     import numpy as np
     import pandas as pd
     
     #Get the maximal trace length, for determining prefix length
     max_length = np.max(df['id'].value_counts())
-    print("longest trace is:",max_length)
+    if verbose == True:
+        print("longest trace is:",max_length)
     
     #Look at the time format:
-    print("Time format:",df["time"].loc[0])
-    print("Std. format: %Y-%m-%d %H:%M:%S")
-    
-    print(df.head())
+    if verbose == True:
+        print("Time format:",df["time"].loc[0])
+        print("Std. format: %Y-%m-%d %H:%M:%S")
+        print(df.head())
     return max_length
 
 
 
 
-def MakeSplitCriterion(df, trainsize=0.8, mode="event"):
+def MakeSplitCriterion(df, trainsize=0.8, mode="event", verbose=False):
     import pandas as pd
     import numpy as np
     from datetime import datetime, timedelta
@@ -108,12 +113,13 @@ def MakeSplitCriterion(df, trainsize=0.8, mode="event"):
     
     dividing_date = dates[splitpoint]
     dividing_date = dividing_date
-    print("=======================================")
-        
-    print("Log starts at:",earliest_date)
-    print("Last event starts at:",lastest_date)
-    print("Train-test split happens at:",dividing_date)
-    print("=======================================")
+
+    if verbose == True:
+        print("=======================================")
+        print("Log starts at:",earliest_date)
+        print("Last event starts at:",lastest_date)
+        print("Train-test split happens at:",dividing_date)
+        print("=======================================")
 
         
     if mode=="event":
@@ -133,10 +139,11 @@ def MakeSplitCriterion(df, trainsize=0.8, mode="event"):
         split_criterion = split_criterion.reset_index(drop=True)
         split_criterion = split_criterion.drop_duplicates(subset="caseid",keep="first")
         
-        print(len(split_criterion["caseid"].unique().tolist()))
-        print(len(split_criterion))
-        print(np.sum(df["trainset"]*1))
-        print("=======================================")
+        if verbose == True:
+            print(len(split_criterion["caseid"].unique().tolist()))
+            print(len(split_criterion))
+            print(np.sum(df["trainset"]*1))
+            print("=======================================")
         
     if mode=="case":
         """
@@ -162,25 +169,30 @@ def MakeSplitCriterion(df, trainsize=0.8, mode="event"):
         
         #If a caseid has both true and false within it (count == 2),
         #it should be dropped.
-        print("=======================================")
-        print("Dropping cases that have events in both train + testsets:")
-        print("=======================================")
-        print("Cases before dropping:",len(validation["trainset"]))
+        if verbose == True:
+            print("=======================================")
+            print("Dropping cases that have events in both train + testsets:")
+            print("=======================================")
+            print("Cases before dropping:",len(validation["trainset"]))
         validation["keep"] = validation["trainset"] == 1
         validation = validation.loc[validation["keep"]==True]
-        print("Cases after dropping:",len(validation["trainset"]))
+        if verbose == True:
+            print("Cases after dropping:",len(validation["trainset"]))
         
         #list of caseids to keep
         ids_keep = validation["caseid"]
         
         #drop those thet should not be kept
-        print("Total events before:",len(split_criterion))
+        if verbose == True:
+            print("Total events before:",len(split_criterion))
         split_criterion = split_criterion.loc[split_criterion["caseid"].isin(ids_keep)]
-        print("Total events after:",len(split_criterion))
+        if verbose == True:
+            print("Total events after:",len(split_criterion))
         split_criterion = split_criterion.drop_duplicates(subset="caseid",keep="first")
-        print("=======================================")
-        print(len(split_criterion))
-        print(np.sum(split_criterion["trainset"]*1))
+        if verbose == True:
+            print("=======================================")
+            print(len(split_criterion))
+            print(np.sum(split_criterion["trainset"]*1))
     return split_criterion
 
 
@@ -442,9 +454,10 @@ def GenerateTrainData(df,
             'drop']
     out.columns = cols
       
-    print("============================")
-    print("Post-processing:")
-    print("============================")
+    if verbose == True:
+        print("============================")
+        print("Post-processing:")
+        print("============================")
     #####################################
     # One-hot encoding
     
@@ -498,7 +511,8 @@ def GenerateTrainData(df,
         if len(category_cols) > 0:
             
             dummylist = category_cols
-            print("\nDummification of",dummylist)
+            if verbose == True:
+                print("\nDummification of",dummylist)
     
             Dummies = pd.get_dummies(datasub[dummylist])
             Dummies = Dummies.reset_index(drop=True)
@@ -508,7 +522,8 @@ def GenerateTrainData(df,
         
         if len(numeric_cols) > 0:
             #add numerical features:
-            print("Adding numerical features:",numeric_cols)
+            if verbose == True:
+                print("Adding numerical features:",numeric_cols)
             numerics = datasub[numeric_cols]
             numerics = numerics.reset_index(drop=True)
             numerics = numerics.add_prefix('num_')
@@ -518,7 +533,8 @@ def GenerateTrainData(df,
     
     if dummify_time_features == True:
         features = ["dayofweek","hourofday"]
-        print("Dummification of time features",features)
+        if verbose == True:
+            print("Dummification of time features",features)
         sysdummies = out[features]
         sysdummies = pd.get_dummies(sysdummies,prefix="t_")
         sysdummies = sysdummies.reset_index(drop=True)
@@ -528,18 +544,21 @@ def GenerateTrainData(df,
     
     #Remove last event in each case
     if droplastev==True:
-        print("\ndropping last event from each case")
-        print("before:",len(out))
+        if verbose == True:
+            print("\ndropping last event from each case")
+            print("before:",len(out))
         out = out.loc[out["drop"] != 1]
         out = out.drop("drop",axis=1)
-        print("after:",len(out))
-        print("data in X is the",max_prefix_length,"last events, excluding the final event")
+        if verbose == True:
+            print("after:",len(out))
+            print("data in X is the",max_prefix_length,"last events, excluding the final event")
     
     #####################################
     # Separate outputs
     #####################################
     
-    print("\ndropping vars:")
+    if verbose == True:
+        print("\ndropping vars:")
     
     # Generate the next_activity target vector
     y_a = out[y_a_new_varnames]
@@ -552,7 +571,8 @@ def GenerateTrainData(df,
             as this would signal the end of a trace..
         """
         dropme = ['y_a_t1_1']#before it was: ["y_a_t1_END"]
-        print("dropping last event category from y_a:",dropme)
+        if verbose == True:
+            print("dropping last event category from y_a:",dropme)
         y_a = y_a.drop(dropme,axis=1) #drop indicator that it is the last event
     
     
@@ -567,7 +587,8 @@ def GenerateTrainData(df,
     
     #Drop everything that is not for the model to see during training
     drops = ["y_timetofinish","y_timetonextev","next_activity"] + y_a_new_varnames
-    print("dropping vars from X: ",drops)
+    if verbose == True:
+        print("dropping vars from X: ",drops)
     
     #remove next activity maker to avoid peeking into the future
     X = out.drop(drops,axis=1)
@@ -668,13 +689,15 @@ def PadInputs(caseids, df, max_prefix_len=3, standardize=True, verbose=False):
         timeend = time.time()
 
     
-    print("\n\nOutput length:",len(dataset))
+    if verbose == True:
+        print("\n\nOutput length:",len(dataset))
     return dataset
 
 
 
-def CaseData(df):
-    print("Generating case data")
+def CaseData(df, verbose=False):
+    if verbose == True:
+        print("Generating case data")
     # step 0: Get case aggregate stats:
     import pandas as pd
     CaseData = pd.DataFrame(df['id'].value_counts())
@@ -703,9 +726,8 @@ def CaseData(df):
     Dates.rename(columns={"id":"caseid"}, inplace=True)
     
     CaseData = pd.merge(left=CaseData,right=Dates, on="caseid")
-    print("done")
-
-
+    if verbose == True:
+        print("done")
     #print("casedata:")
     #print(CaseData)
     return CaseData
@@ -745,7 +767,8 @@ def GetCaseStats(df, padded_df, CaseData, y_t, y_a, y, prefixwindow=0, dateforma
     allseqs = len(SEQIDS)
     #logic to build output table
     counter = 0
-    print("Making casestats..")
+    if verbose == True:
+        print("Making casestats..")
     for i in SEQIDS:
         if verbose == True:
             print("Making casestats for SEQ:",counter,"of",allseqs)
@@ -793,7 +816,8 @@ def GetCaseStats(df, padded_df, CaseData, y_t, y_a, y, prefixwindow=0, dateforma
     
     # step 2: Match the new table with target variables
     #"""    
-    print("Done.")
+    if verbose == True:
+        print("Done.")
     output["y"] = y.tolist()
     output["y_t"] = y_t.tolist()
     output = pd.concat([output.reset_index(drop=True), 
@@ -896,7 +920,8 @@ def SplitAndReshape(df, y_a, y_t, y, split_criterion, prefixlength, verbose=Fals
     y_test = y_test.values
 
     #Reshape:
-    print("reshaping..")
+    if verbose == True:
+        print("reshaping..")
     
     #time, n, k
     timesteps = prefixlength
@@ -906,21 +931,19 @@ def SplitAndReshape(df, y_a, y_t, y, split_criterion, prefixlength, verbose=Fals
     #Reshape the data
     X_train = X_train.reshape(observations, timesteps, k)
     X_test = X_test.reshape(y_test.shape[0], timesteps, X_test.shape[1])
-    print("Trainset size (with prefixes of ",prefixlength,"):",y_train.shape[0])
-    print("Testset size (with prefixes of ",prefixlength,"):",y_test.shape[0])
-    print("==========================================")
-    #Check the shapes
-    print("X: observations, timesteps, vars")
-    print(X_train.shape)
-    
-    print("y_train: observations, labels")
-    print(y_train.shape)
-    
-    print("y_t_train: observations, labels")
-    print(y_t_train.shape)
-    
-    print("y_a_train: observations, labels")
-    print(y_a_train.shape)
+    if verbose == True:
+        print("Trainset size (with prefixes of ",prefixlength,"):",y_train.shape[0])
+        print("Testset size (with prefixes of ",prefixlength,"):",y_test.shape[0])
+        print("==========================================")
+        #Check the shapes
+        print("X: observations, timesteps, vars")
+        print(X_train.shape)
+        print("y_train: observations, labels")
+        print(y_train.shape)
+        print("y_t_train: observations, labels")
+        print(y_t_train.shape)
+        print("y_a_train: observations, labels")
+        print(y_a_train.shape)
     
     return X_train, X_test, y_t_train, y_t_test, y_a_train, y_a_test, y_train, y_test
 

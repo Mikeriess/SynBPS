@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-def run_experiments(training_function, eval_function, output_dir="data/", out_file="results.csv", design_table="design_table.csv"):
+def run_experiments(training_function, eval_function, store_eventlogs=False, output_dir="data/", out_file="results.csv", design_table="design_table.csv", verbose=False):
     """
     Function for running experiments
     """
@@ -10,6 +10,8 @@ def run_experiments(training_function, eval_function, output_dir="data/", out_fi
     import pandas as pd
     import numpy as np
     import time
+    from tqdm import tqdm
+
 
     # load the design table as df
     df = pd.read_csv(output_dir+design_table)
@@ -18,7 +20,7 @@ def run_experiments(training_function, eval_function, output_dir="data/", out_fi
     results = []
 
     # Iterate over each run in the design table df
-    for run in df.index:
+    for run in tqdm(df.index):
         
         """
         Retrieving settings for experiment i
@@ -30,7 +32,8 @@ def run_experiments(training_function, eval_function, output_dir="data/", out_fi
         If experiment is not previously performed
         """
         if curr_settings.Done == 0:
-            print("Run:",run)
+            if verbose==True:
+                print("Run:",run)
             start_time = time.time()
     
             # generate the log
@@ -40,9 +43,10 @@ def run_experiments(training_function, eval_function, output_dir="data/", out_fi
             stop_time = time.time()
             
             # store it
-            if output_dir is not None:
+            if store_eventlogs==True:
                 log.to_csv(output_dir+"run_"+str(run)+"_eventlog.csv", index=False)
-                print("eventlog saved to:",output_dir+"run_"+str(run)+"_eventlog.csv")
+                if verbose==True:
+                    print("eventlog saved to:",output_dir+"run_"+str(run)+"_eventlog.csv")
     
     
             # store metrics from simulated log
@@ -87,8 +91,9 @@ def run_experiments(training_function, eval_function, output_dir="data/", out_fi
             ### Custom training function
             inference_test = training_function(input_data)
             
-            # store inference table
-            inference_test.to_csv(output_dir+"inference_test_"+str(run)+".csv", index=False)
+            if store_eventlogs==True:
+                # store inference table
+                inference_test.to_csv(output_dir+"inference_test_"+str(run)+".csv", index=False)
 
             """
             Evaluate the model
