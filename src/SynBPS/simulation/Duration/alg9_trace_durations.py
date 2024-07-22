@@ -81,7 +81,7 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
                                             seed_value=seed_value)
     
     # All time-information generated is stored here
-    Y_container = []
+    Y_table = []
     
     for idx in caseids:
         
@@ -89,7 +89,6 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
         trace = Theta[idx]
     
         #Remove absorption state from trace (duration=0)
-        #trace.remove("END")
         trace = list(filter(lambda a: a != "END", trace))
         
         # Arrival-time relative to the beginning of the timeline
@@ -114,7 +113,7 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
         Q = [] #time since monday
         S = [] #business hours offset
         V = [] #activity duration
-        Z = []
+        Z = [] #arrival time of trace
         
         starttimes = [] #starttime in continuous time
         endtimes = [] #endtime in continuous time
@@ -129,14 +128,18 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
             
             """
             ARRIVAL TIME:
+                When does the case enter the system?
             """
+            # if this is the first timestep in the trace, set n_t to the arrival time
             if t == 0:
-                n_t = z_i
-                y_t = 0
-                
+                n_t = z_i # arrival time is already generated in alg 1
+            
+            # if not, add the duration of the previous events (Y_t-1) to the start time
             if t > 0:
+                # arrivaltime + total duration of last activity incl delays
                 n_t = n_t + Y[t-1]
-                
+            
+            # append the values to vectors/the table
             X.append(n_t)
             Z.append(z_i)
             
@@ -144,16 +147,16 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
             RESOURCE OFFSET:
                 Delays due to no resource available instantly
             """
-            h_t = Resource_offset(h = 0, 
-                                    m = settings["resource_availability_m"], 
-                                    p = settings["resource_availability_p"], 
-                                    n = settings["resource_availability_n"],
-                                    seed_value=seed_value)
+            # sample the offset from binomial distribution: get number of trials before success x delay per trial
+            h_t = Resource_offset(m = settings["resource_availability_m"], 
+                                  p = settings["resource_availability_p"], 
+                                  n = settings["resource_availability_n"],
+                                  seed_value=seed_value)
             H.append(h_t)
 
-
             """
-            PROCESS STABILITY
+            PROCESS STABILITY:
+                Delays due to lack of standardization
             """
             
             if settings["process_stability_scale"] == 0:
@@ -164,88 +167,85 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
                         
             B.append(b_t)
             
-
-
             """
             DETERMINISTIC OFFSET:
+                Prior to starting the work, an offset is added based on the weekday
             """
             
-            # all stochastic offsets
+            # all stochastic offsets: resource + stability
             m = h_t + b_t
                                 
-            # get time since monday
-            q_t = np.mod(n_t+m,u)
+            # get time since monday: arrivaltime or starttime + offsets
+            q_t = np.mod(n_t + m, u)
             
-            # Append to final data
+            # Append to vector/table
             Q.append(q_t)
             
             # Get the deterministic offset
             s_t = Deterministic_offset(W, q_t)
             
-            # Append to final data
+            # Append to vector/table
             S.append(s_t)
             
             """
-            DURATION
+            DURATION: Event
+                The duration of the work performed
             """
             
-            # Get the lambda value for that activity
+            # Hypoexponential distribution; Lookup the lambda value for activity e that t
             lambdavalue = Lambd[e_t].loc[t]
             
-            # Generate the activity duration
+            # Generate the activity duration from exponential dist
             v_t = np.random.exponential(scale=lambdavalue, size=1)[0]
             V.append(v_t)
                        
             """
             TOTAL DURATION
             """
-
-            u_t = h_t + b_t + s_t + v_t
+            # resource offset + stability offset + their conditional deterministic offset + activity duration
+            u_t = h_t + b_t + s_t + v_t 
             
             Y.append(u_t)
             
-            y_sum = y_sum + y_t
+            # accumulated time (all durations, excluding the arrival time)
+            y_sum = np.sum(Y)
             y_acc_sum.append(y_sum)
-
-            #continuous time variables used for the timestmaps
-            starttime_t = n_t + h_t + b_t + s_t 
-            endtime_t = starttime_t + v_t
+            """
+            TIMESTAMPS
+                Continuous time variables used for the timestmaps
+            """
+            # if this is the first event, starttime is after the stochastic and deterministic offsets, and endtime is simply after the delay
+            if t == 0:
+                # arrivaltime + resource availability + stability + deterministic (calendar) offsets before work begins
+                starttime_t = n_t + h_t + b_t + s_t
+                endtime_t = starttime_t + v_t
+            if t > 0:
+                # end of last activity + resource availability + stability + deterministic (calendar) offsets before work begins
+                starttime_t = (n_t + u_t) - v_t
+                endtime_t = starttime_t + v_t # end of the activity is after v_t (event duration)
 
             starttimes.append(starttime_t)
             endtimes.append(endtime_t)
 
-            
-        #print("Trace:",trace)
-        #print("Trace durations:",Y)
-        #print("Acc cycle-time:",y_acc_sum)
-        #print("Total cycle-time:",y_sum)
-        
         #updated variable names to match paper (19/02)
         case_times = {"caseid":idx,
 
-                      "z_t":Z,            #offset since beginning (arrival time of trace)
+                      "z_t":Z,            # offset since beginning (arrival time of trace)
 
-                      "n_t":X,                      #arrival times (start/ready time of activity)
-                      "u_t":Y,                      #duration plus offsets
-                      "y_acc_sum":y_acc_sum,        #accumulated durations
+                      "n_t":X,                      # arrival times (start/ready time of activity)
+                      "u_t":Y,                      # duration plus offsets (for this event only)
+                      "y_acc_sum":y_acc_sum,        # accumulated durations plus offsets 
                       
                       
-                      "h_t":H,            #resource offset
-                      "b_t":B,            #stability offset
-                      "q_t":Q,            #time since monday (point in week)
-                      "s_t":S,            #calendar-based deterministic offset
-                      "v_t":V,
-                      "starttime":starttimes,
-                      "endtime":endtimes}        #activity durations only
+                      "h_t":H,                      # resource offset
+                      "b_t":B,                      # stability offset
+                      "q_t":Q,                      # time since monday (point in week)
+                      "s_t":S,                      # calendar-based deterministic offset
+                      "v_t":V,                      # event duration only
+
+                      "starttime":starttimes,       # activity start only (after all delays)
+                      "endtime":endtimes}           # activity durations only
         
-        Y_container.append(case_times)
+        Y_table.append(case_times)
         
-    #### Done ####
-    
-    Y_container
-
-    return Y_container, Lambd, theta_time
-
-
-#Generate_time_variables(Theta = [["a","b","END"],["a","b","END"]],
-#                                   D = ["a","b"])
+    return Y_table, Lambd, theta_time

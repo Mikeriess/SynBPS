@@ -33,15 +33,12 @@ def Generate_lambdas(D,t, lambd_range, seed_value=1337):
 """
 
 
-def Resource_offset(h = 0, m = 0.15, p = 0.5, n = 3, seed_value=1337):
+def Resource_offset(m = 0.15, p = 0.5, n = 3, seed_value=1337):
     import numpy as np
     #np.random.seed(seed_value)
     """
-    
-
     Parameters
     ----------
-    h : beginning offset
     m : time between requests
     p : probability of getting an idle agent
     n : number of agents
@@ -53,25 +50,40 @@ def Resource_offset(h = 0, m = 0.15, p = 0.5, n = 3, seed_value=1337):
 
     """
     
+    # initial value
+    #h = 0
     
-    
-    """
-    #initial value
-    k = 0
-    while k < 1:
-    """  
-    
-    #Get number of trials before success
-    k = np.random.binomial(n, p, size=1)[0]
+    # get number of trials before success
+    #k = np.random.binomial(n, p, size=1)[0]
     
     # Add penalty for every trial until success (of getting an agent)
-    h = m*k
+    #h = m*k
+
+    ################################
+
+    # Create a random number generator without setting a global seed
+    rng = np.random.default_rng()
+
+    # initialize; no agent 
+    success = False
+
+    # number of trials needed 
+    num_trials = 0
     
-    """
-    #add time penalty of no agent available
-    if k < 1:
-        h=h+m
-    """  
+    # Continue trials until at least one success is achieved
+    while success == False:
+        num_trials += 1
+        # Simulate one trial across all servers using binomial distribution
+        successes = rng.binomial(n, p)
+        # Check if at least one server succeeded
+        if np.sum(successes) > 0:
+            success = True
+
+    # calculate the total waiting time for an agent
+    k = num_trials #trials_until_success(p, num_servers=n)
+
+    # Add penalty for every trial until success (of getting an agent)
+    h = m * k
     return h
 
 

@@ -107,7 +107,7 @@ def generate_eventlog(curr_settings, verbose=False):
         print("traces:",len(Theta))
     
     # Generate time objects
-    Y_container, Lambd, theta_time = Generate_time_variables(Theta = Theta,
+    Y_table, Lambd, theta_time = Generate_time_variables(Theta = Theta,
                                                             D = statespace,
                                                             settings = time_settings, 
                                                             custom_distribution=custom_dist,
@@ -133,17 +133,17 @@ def generate_eventlog(curr_settings, verbose=False):
         trace = pd.DataFrame({"caseid":caseids,
                              "activity":trace,
                              "activity_no":timesteps,
-                             "y_acc_sum":Y_container[i]["y_acc_sum"],
-                             "z_t":Y_container[i]["z_t"],
-                             "n_t":Y_container[i]["n_t"],
-                             "q_t":Y_container[i]["q_t"],
-                             "h_t":Y_container[i]["h_t"],
-                             "b_t":Y_container[i]["b_t"],
-                             "s_t":Y_container[i]["s_t"],
-                             "v_t":Y_container[i]["v_t"],
-                             "u_t":Y_container[i]["u_t"],
-                             "starttime":Y_container[i]["starttime"],
-                             "endtime":Y_container[i]["endtime"]})
+                             "y_acc_sum":Y_table[i]["y_acc_sum"],
+                             "z_t":Y_table[i]["z_t"],
+                             "n_t":Y_table[i]["n_t"],
+                             "q_t":Y_table[i]["q_t"],
+                             "h_t":Y_table[i]["h_t"],
+                             "b_t":Y_table[i]["b_t"],
+                             "s_t":Y_table[i]["s_t"],
+                             "v_t":Y_table[i]["v_t"],
+                             "u_t":Y_table[i]["u_t"],
+                             "starttime":Y_table[i]["starttime"],
+                             "endtime":Y_table[i]["endtime"]})
         
         if i ==0:
             #make final table
