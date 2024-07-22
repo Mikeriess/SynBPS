@@ -7,15 +7,17 @@ SynBPS is short for Synthetic Business Process Simulation. This framework is des
 
 ![image](https://github.com/Mikeriess/SynBPS/blob/main/docs/illustration.png)
 
-## Whats new: Version 1.1.1
+## Whats new: Version 1.1.3
 - Added support for process memory with HOMC of order > 4
 - Added Example notebooks in ```examples/``` folder
-- Added ability for users to specify distribution parameters (memoryless process)
+- Added ability to specify distribution parameters (memoryless process)
+- Added ability to specify the dataprep function manually (see [e2e example notebook](https://github.com/Mikeriess/SynBPS/blob/main/examples/simulation_e2e_example.ipynb))
 - Fixed issues with seed value in processes with memory
 - Restructuring and separation of functions, based on their purpose: 
 	- ```Design``` for generating a DoE
 	- ```Simulation``` for functions related to event-log generation
 	- ```Dataprep``` for functions related to data-preparation for ML models (prefix-log, temporal splitting etc.,)
+- Updated readthedocs documentation with version *1.1.0+* syntax changes.
 - Other minor fixes
 
 **Please note:** Version 1.1.0** introduces new parameters and different function locations. Users are therefore advised to refer to the slightly changed code examples in ```examples/``` folder.

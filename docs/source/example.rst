@@ -6,8 +6,8 @@ Usage
 SynBPS is designed to be used in the following manner:
 
 * Generate experimental design table (table of all settings to be simulated)
-* Specify Train() and Eval() functions (to be used in each experiment)
-* Run experiments (using your approach)
+* Specify Dataprep(), Train() and Eval() functions (to be used in each experiment)
+* Run experiments (replicating each setting n times)
 * Analyze results
 
 Example use-case
@@ -18,61 +18,55 @@ Here the settings for the experiments can be modified in the dictionary called r
 
 .. code-block:: python
 
-    # dictionary consisting of all desired settings for each factor
-    run_settings = {
-                # level of entropy: min, medium and/or max
-                "process_entropy":["min_entropy"], #,"med_entropy","max_entropy"
-                
-                # number of traces/cases in the event-log
-                "number_of_traces":[500],
+    run_settings = {# level of entropy: min, medium and/or max
+                    "process_entropy":["min_entropy"], #"min_entropy","med_entropy","max_entropy"
+                    
+                    # number of traces/cases in the event-log
+                    "number_of_traces":[500],
 
-                # number of activity types
-                "statespace_size":[5], 
+                    # number of activity types
+                    "statespace_size":[5], 
 
-                # first or higher-order markov chain to represent the transitions
-                "process_type":["memoryless"], 
-                
-                # order of HOMC - only specify this when using process with memory
-                "process_memory":[2],
-                
-                # number of transitions - only used for medium entropy (should be higher than 2 and < statespace size)
-                "med_ent_n_transitions":[1,2,3,4,5],
-                                
-                # lambda parameter of inter-arrival times
-                "inter_arrival_time":[1.5],
-                
-                # lambda parameter of process noise
-                "process_stability_scale":[0.1],
-                
-                # probability of agent being available
-                "resource_availability_p":[0.5],
+                    # first or higher-order markov chain to represent the transitions
+                    "process_type":["memoryless"], 
+                    
+                    # order of HOMC - only specify this when using process with memory
+                    "process_memory":[1],
+                    
+                    # number of transitions - only used for medium entropy (should be higher than 2 and < statespace size)
+                    "med_ent_n_transitions":[2],
+                                    
+                    # lambda parameter of inter-arrival times
+                    "inter_arrival_time":[1],
+                    
+                    # lambda parameter of process noise
+                    "process_stability_scale":[0.5],
+                    
+                    # probability of agent being available
+                    "resource_availability_p":[0.25, 0.99],
 
-                # number of agents in the process
-                "resource_availability_n":[3],
+                    # number of agents in the process
+                    "resource_availability_n":[3],
 
-                # waiting time in full days, when no agent is available
-                "resource_availability_m":[0.041],
-                
-                # variation between activity durations
-                "activity_duration_lambda_range":[1],
-                
-                # business hours definition: when can cases be processed? ()
-                "Deterministic_offset_W":["weekdays"],
+                    # waiting time in full days, when no agent is available
+                    "resource_availability_m":[0.041],
+                    
+                    # variation between activity durations
+                    "activity_duration_lambda_range":[1],
+                    
+                    # business hours definition: when can cases be processed?
+                    "Deterministic_offset_W":["weekdays"],
 
-                # time-unit for a full week: days = 7, hrs = 24*7, etc.
-                "Deterministic_offset_u":[7],
-                
-                # training data format (See Verenich et al., 2019): 
-                # True - use first event to predict total cycle-time. 
-                # False - use Prefix-log format / each event to predict remaining cycle time.
-                "first_state_model":[False],
+                    # time-unit for a full week: days = 7, hrs = 24*7, etc.
+                    "Deterministic_offset_u":[7],
+                    
+                    # offset for the timestamps used (years after 1970)
+                    "datetime_offset":[54],
+                    
+                    # number of repetitions of the experiments: duplicates the experiment table (2 times here)
+                    "num_replications":list(range(0, 100))
+                }
 
-                # offset for the timestamps used (years after 1970)
-                "datetime_offset":[45],
-                
-                # number of repetitions of the experiments: duplicates the experiment table (5 times here)
-                "num_replications":list(range(0, 5))
-            }
 
     # import the make_design_table function to generate a full factorial experimental design table
     from SynBPS.design.DoE import make_design_table
@@ -85,9 +79,70 @@ Here the settings for the experiments can be modified in the dictionary called r
     df.to_csv("data/design_table.csv", index=False)
 
     # inspect the resulting design table
-    df.head()
+    df
 
-2. **Specify Train() and Test() functions**
+2. **# Specify dataprep_function()**
+If desired, the datapreparation can be specified in a function as below. The output of the process should be a dictionary containing the train and test sets
+
+.. code-block:: python
+
+    def dataprep_function(log):
+    """
+    Function used to prepare the data from event-log to prefix or other.
+
+    Parameters
+    -------
+    log : a dataframe event-log generated by simulate_eventlog module
+    
+    Returns
+    -------
+    input_data : a dictionary of elements
+                        x_train: the inputs of the train set
+                        x_test: the inputs of the test set
+                        y_train: the target of the train set 
+                        y_test: the target of the test set 
+                        inference_test: the test partition of raw event-log with target values "y"
+    """
+    
+    # High-level helper for prefix-log format: useful for autoregressive models
+
+    #from SynBPS.dataprep.prepare import prefix_data
+    #input_data = prefix_data(log, verbose=False)
+
+    """
+    # here you can also specify your own custom dataprep pipeline as seen below
+    """
+    from sklearn.model_selection import train_test_split
+
+    ## step 1: drop everything except the first event for this example 
+    log = log.groupby('caseid').first().reset_index()
+
+    ## step 2: assign a target variable
+    y = log["u_t"] # the total duration of the event incl. delays
+
+    ## step 3: subset the features needed
+    X = log[["activity","activity_no","z_t", "q_t",	"h_t","b_t","s_t"]] # here we know everything else than the activity duration
+
+    ## step 4: make dummies / oh encode
+    X = pd.get_dummies(X, columns=['activity'], prefix='activity')
+ 
+    ## step 5: Split the data into training and testing sets
+    x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.4)
+
+    # this element can be used for detailed error-analysis
+    inference_test = x_test
+    inference_test["y"] = y_test
+
+    # step 6: store to dictionary
+    input_data = {"x_train":x_train,
+                  "x_test":x_test,
+                  "y_train":y_train,
+                  "y_test":y_test,
+                  "Inference_test":inference_test}
+
+    return input_data
+
+3. **Specify training_function() and eval_function()**
 Before running the experiments, you need to define model training and evaluation functions.
 
 In this example we train a first state model, which is a model using only the first observed event (state) to predict to total cycle-time. The default data preparation will result in a prefix-log, which can be used to predict remaining cycle-time from every observed event in the trace.
@@ -102,30 +157,29 @@ The default behavior of the data preparation is a temporal split with 70 percent
 
 .. code-block:: python
 
-    def training_function(input_data):
-        print("training")
-        
+    def training_function(input_data):    
         """
         Example model: Lasso regression
-        This is just an example of how to define your model in this framework.
-        Using this model on this data format is not advised as we break i.i.d. assumptions.
+        Here we fit a regressor to the target variable on the train set and predict on the test set
         """
 
         #retrieve model class from sklearn
         from sklearn import linear_model
-        reg = linear_model.Lasso(alpha=0.1)
 
-        #reshape training data for this type of model 
-        #(from: N x t x k, to: N x (t x k))
-        #num_obs = input_data["x_train"].shape[0]
+        #get prod class from numpy for flattening the inputs
         from numpy import prod
-        flattened_dim = prod(input_data["x_train"].shape[1:])
+
+        # Lasso model
+        reg = linear_model.Lasso(alpha=0.1)
+        
+        # OLS
+        #reg = linear_model.LinearRegression()
 
         #train the regression model
-        reg.fit(input_data["x_train"].reshape((input_data["x_train"].shape[0], flattened_dim)), input_data["y_train"])
+        reg.fit(input_data["x_train"], input_data["y_train"])
 
         #predict on the test data
-        y_pred = reg.predict(input_data["x_test"].reshape((input_data["x_test"].shape[0], flattened_dim)))
+        y_pred = reg.predict(input_data["x_test"].drop("y",axis=1))
 
         #get the inference table (used for analysis of the final results)
         inference = input_data["Inference_test"]
@@ -134,13 +188,12 @@ The default behavior of the data preparation is a temporal split with 70 percent
         inference["y_pred"] = y_pred
         return inference
 
+
 Output is an **inference table** containing predictions and actual target values for the test data. This table is used for analysis of the results. The **eval_function** also uses this table to calculate aggregated metrics.
 
 .. code-block:: python
 
     def eval_function(inference):
-        print("evaluation")
-
         """
         Example evaluation: Aggregated scores
         The inference table also enable the ability to make trace or prefix-level evaluations using its id variables
@@ -161,25 +214,27 @@ Output is an **inference table** containing predictions and actual target values
                 "TEST_MAE":MAE,
                 "TEST_R2":R2,
                 "TEST_EVAR":EVAR}
-        print(metrics)
+        #print(metrics)
         return metrics
 
 3. **Run experiments**
-The experiments can be run using the **run_experiments** function, which takes the training function and evaluation function specified above as its first two arguments. Next, the output directory of the data created during the experiments needs to be specified (here we use **data/**), followed by the destination file to store the results, and the input design table created in step 1 of this guide. 
+The experiments can be run using the **run_experiments** function, which takes the training function and evaluation function specified above as its first two arguments. Next, the output directory of the data created during the experiments can be specified if desired (here we use **data/**), followed by the destination file to store the results, and the input design table created in step 1 of this guide. 
 .. code-block:: python
 
     # function to run a set of experiments
     from SynBPS.simulation.simulation_pipeline import run_experiments
 
-    # run experiments
-    results = run_experiments(training_function, 
+    # function to run a set of experiments
+    results = run_experiments(dataprep_function,
+                            training_function, 
                             eval_function, 
+                            store_eventlogs=False,
                             output_dir="data/",
                             out_file="results.csv", 
                             design_table="design_table.csv")
 
 4. **Analyze results**
-Firstly we load the results table which contain aggregated metrics based on the individual runs. This can then be plotted and analyzed in any manner desired.
+Firstly we load the results table which contain aggregated metrics based on the individual runs. This can then be plotted for comparison across any of the factors varied in the experiment. In this case *resource_availability_p* was altered.
 
 .. code-block:: python
 
@@ -191,15 +246,10 @@ Firstly we load the results table which contain aggregated metrics based on the 
     df = pd.read_csv("data/results.csv")
 
     # Create boxplot
-    sns.boxplot(data=df, x='med_ent_n_transitions', y='TEST_R2')
-
-    # Calculate medians and plot lines
-    medians = df.groupby(['med_ent_n_transitions'])['TEST_R2'].median().values
-    n = len(medians)
-    sns.lineplot(x=range(n), y=medians, sort=False)
+    sns.boxplot(data=df, x='resource_availability_p', y='TEST_R2')
 
     # Set title and y-axis range
-    plt.title('Boxplot with Median Lines')
-    plt.ylim(0, 1)
+    plt.title('Test set model performance')
+    #plt.ylim(0, 1)
 
     plt.show()
