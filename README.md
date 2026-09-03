@@ -7,7 +7,7 @@ SynBPS is short for Synthetic Business Process Simulation. This framework is des
 
 ![image](https://github.com/Mikeriess/SynBPS/blob/main/docs/illustration.png)
 
-## Whats new: Version 1.2.0
+## Whats new: Version 1.1.8
 - Fixed the process with memory (HOMC): there is now one transition table per order 1 to K, and every table is conditioned on the full context of previous activities. Before, the effective order was 1 for ```process_memory``` 2, and other orders raised an error
 - Fixed the conditional probabilities of the process with memory, such that they sum to 1 within every context
 - Fixed ```med_ent_n_transitions``` being ignored by the process with memory
@@ -19,7 +19,7 @@ SynBPS is short for Synthetic Business Process Simulation. This framework is des
 - Added tests for the process with memory
 - Removed the ```Memory_process``` module (ported from Pomegranate) and the ```networkx``` dependency. Generating a process with memory is now much faster, as the sampling no longer loops over the full table for every event
 
-**Please note:** Event-logs generated with ```process_type = "memory"``` in version 1.2.0 differ from earlier versions for the same seed value, as the earlier versions did not produce a process of order K.
+**Please note:** Event-logs generated with ```process_type = "memory"``` in version 1.1.8 differ from earlier versions for the same seed value, as the earlier versions did not produce a process of order K.
 
 ## Whats new: Version 1.1.3
 - Added support for process memory with HOMC of order > 4
