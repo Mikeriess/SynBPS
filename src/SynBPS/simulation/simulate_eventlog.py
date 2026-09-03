@@ -9,6 +9,8 @@ def generate_eventlog(curr_settings, verbose=False):
             process_entropy (str): Level of entropy. Options: "min_entropy", "med_entropy", "max_entropy" or "custom" for custom_distribution (see below).
             process_type (str): Type of Markov chain. Options: "memoryless", "memory".
             process_memory (int): Order of the Higher-Order Markov Chain (HOMC). Only used when process_type is "memory".
+            p_abs_min (float): (Default: 0.05) Minimum probability of ending the trace from any state. Only used when process_type is "memory" and process_entropy is "med_entropy" or "max_entropy". A value of 0 removes the guarantee that every trace ends.
+            max_len (int): (Default: 10000) Maximum number of events in a trace, after which an exception is raised. Only used when process_type is "memory".
             statespace_size (int): Number of activity types.
             med_ent_n_transitions (int): Number of transitions for medium entropy. Should be > 2 and < statespace_size.
             inter_arrival_time (float): Lambda parameter of inter-arrival times.
@@ -53,6 +55,12 @@ def generate_eventlog(curr_settings, verbose=False):
     process_memory = int(curr_settings["process_memory"]) 
     num_transitions = int(curr_settings["med_ent_n_transitions"]) 
 
+    # minimum probability of absorption from any state (default 0.05) - only used for process with memory
+    p_abs_min = float(curr_settings["p_abs_min"]) if "p_abs_min" in curr_settings else 0.05
+
+    # maximum number of events in a trace (default 10000) - only used for process with memory
+    max_len = int(curr_settings["max_len"]) if "max_len" in curr_settings else 10000
+
     time_settings = {"inter_arrival_time":float(curr_settings["inter_arrival_time"]), 
                     "process_stability_scale":float(curr_settings["process_stability_scale"]),
                     "resource_availability_p":float(curr_settings["resource_availability_p"]),
@@ -80,19 +88,15 @@ def generate_eventlog(curr_settings, verbose=False):
         if "custom_distributions" in curr_settings:
             raise Exception("Cannot use custom distribution with memory process. Change to memoryless or set custom_distributions to None")
 
-        # HOMC not valid for min_entropy, as this is a deterministic process
-        if process_entropy == "min_entropy":
-            Theta, Phi = Process_without_memory(D = statespace, 
-                                mode = process_entropy, 
-                                num_traces=number_of_traces,
-                                num_transitions=num_transitions, 
-                                seed_value=seed_val)
-        else:
-            Theta, Phi = Process_with_memory(D = statespace, 
-                                mode = process_entropy, 
-                                num_traces=number_of_traces, 
-                                K=process_memory, 
-                                seed_value=seed_val)
+        # HOMC of order K for all entropy levels (min_entropy is a deterministic process with memory)
+        Theta, Phi = Process_with_memory(D = statespace, 
+                            mode = process_entropy, 
+                            num_traces=number_of_traces, 
+                            K=process_memory, 
+                            num_transitions=num_transitions, 
+                            p_abs_min=p_abs_min, 
+                            max_len=max_len, 
+                            seed_value=seed_val)
     
     if process_type == "memoryless":
         Theta, Phi = Process_without_memory(D = statespace, 
