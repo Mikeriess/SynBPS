@@ -9,3 +9,11 @@ bpmn_diagram.png
 *.ipynb_checkpoints
 todo.md
 .vscode/
+
+# local tooling and build output
+__pycache__/
+.pytest_cache/
+.tox/
+.venv/
+*.egg-info/
+/build/

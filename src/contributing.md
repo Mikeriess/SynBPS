@@ -8,6 +8,26 @@ If you would like to contribute to SynBPS, you are welcome to submit your sugges
 - If your contribution requires documentation changes, please update the documentation accordingly.
 - Be respectful and considerate towards others in your interactions on the project.
 
+## Development setup and local verification
+Before opening a pull request, verify the change locally. The same checks run automatically on every pull request in GitHub Actions (see `.github/workflows/ci.yml`).
+
+Create a virtual environment and install the package in editable mode together with the test tools:
+
+    python -m venv .venv
+    source .venv/bin/activate      # Windows: .venv\Scripts\activate
+    pip install -e . pytest
+
+Run the test suite:
+
+    pytest -v tests/
+
+To run the tests against every supported Python version installed on your machine, and to build and validate the distribution files, use tox:
+
+    pip install tox
+    tox
+
+Individual environments can be selected, for example `tox -e py311` or `tox -e build`.
+
 ## Releasing a new version to PyPI
 Merging to `main` does **not** publish anything. A release is triggered manually:
 
