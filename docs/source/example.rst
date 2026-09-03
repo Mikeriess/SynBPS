@@ -33,6 +33,9 @@ Here the settings for the experiments can be modified in the dictionary called r
                     # order of HOMC - only specify this when using process with memory
                     "process_memory":[1],
                     
+                    # minimum probability of ending the trace from any state - only used for process with memory
+                    "p_abs_min":[0.05],
+                    
                     # number of transitions - only used for medium entropy (should be higher than 2 and < statespace size)
                     "med_ent_n_transitions":[2],
                                     
