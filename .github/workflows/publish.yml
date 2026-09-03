@@ -1,11 +1,18 @@
 name: Publish package 📦 to PyPI
 
-# Publishing is a deliberate, manual action: this workflow runs only when a
-# GitHub release is published (Releases -> Draft a new release -> Publish).
+# Publishing is a deliberate, manual action: this workflow runs when a GitHub
+# release is published (Releases -> Draft a new release -> Publish), or when it
+# is started by hand for an existing release (Actions -> Run workflow).
 # Merging to main does not publish anything; see src/contributing.md.
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag of an existing release to publish again, for example v1.1.8'
+        required: true
+        type: string
 
 jobs:
   build-n-publish:
@@ -14,18 +21,23 @@ jobs:
     # Optional extra protection: configure the "pypi" environment under
     # Settings -> Environments to require a manual approval before this job runs.
     environment: pypi
+    # needed to attach the built files to the release
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
+      with:
+        ref: ${{ github.event.release.tag_name || inputs.tag }}
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.12'
 
     - name: Check that the release tag matches the package version
-      env:
-        RELEASE_TAG: ${{ github.event.release.tag_name }}
       run: |
         TAG_VERSION="${RELEASE_TAG#v}"
         PACKAGE_VERSION="$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
@@ -56,7 +68,16 @@ jobs:
     - name: Check distribution metadata
       run: twine check dist/*
 
+    - name: Attach sdist and wheel to the GitHub release
+      # done before the PyPI upload, so that a release stays installable even if PyPI rejects the upload
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+      run: gh release upload "$RELEASE_TAG" dist/* --clobber
+
     - name: Publish package to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.PYPI_API_TOKEN }}
+        # a version that is already on PyPI is skipped, so the workflow can be run again
+        skip-existing: true
