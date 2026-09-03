@@ -12,8 +12,11 @@ todo.md
 
 # local tooling and build output
 __pycache__/
+*.pyc
 .pytest_cache/
 .tox/
 .venv/
 *.egg-info/
 /build/
+/dist/
+/docs/build/
