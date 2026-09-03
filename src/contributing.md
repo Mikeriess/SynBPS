@@ -33,6 +33,8 @@ Merging to `main` does **not** publish anything. A release is triggered manually
 
 1. Bump `version` in `pyproject.toml` and update the "Whats new" section in `README.md` in a pull request, and merge it.
 2. On GitHub, open *Releases*, choose *Draft a new release*, create a tag named `v<version>` (for example `v1.2.0`) on `main`, and publish the release.
-3. The *Publish package to PyPI* workflow (`.github/workflows/publish.yml`) checks that the tag matches the version in `pyproject.toml`, runs the tests, builds the package and uploads it to PyPI.
+3. The *Publish package to PyPI* workflow (`.github/workflows/publish.yml`) checks that the tag matches the version in `pyproject.toml`, runs the tests, builds the package, attaches the sdist and wheel to the GitHub release, and uploads them to PyPI.
 
 If the tag and the package version differ, the workflow stops before anything is uploaded.
+
+The workflow can also be started by hand for an existing release, for example after a failed upload: open *Actions*, choose *Publish package to PyPI*, click *Run workflow* and enter the release tag. Files that are already on PyPI are skipped, so running it again is safe.

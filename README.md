@@ -41,6 +41,13 @@ You can install SynBPS using pip:
 
     pip install SynBPS
 
+### Installing a specific version from GitHub
+A release can also be installed directly from GitHub, for example when a new release is not yet available on PyPI:
+
+    pip install git+https://github.com/Mikeriess/SynBPS.git@v1.1.8
+
+Replace ```v1.1.8``` with the tag of the release you need (see the [releases page](https://github.com/Mikeriess/SynBPS/releases)). This requires git to be installed on your machine. Each release also carries the built wheel file (```.whl```) as an asset, which can be installed with ```pip install <path or URL of the wheel file>``` without git.
+
 Once installed, you can:
 
 - Run a simulation experiment with your own models using the [End-to-end example notebook](https://github.com/Mikeriess/SynBPS/blob/main/examples/simulation_e2e_example.ipynb) for a short demo of SynBPS. 
