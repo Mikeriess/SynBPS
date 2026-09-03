@@ -7,6 +7,20 @@ SynBPS is short for Synthetic Business Process Simulation. This framework is des
 
 ![image](https://github.com/Mikeriess/SynBPS/blob/main/docs/illustration.png)
 
+## Whats new: Version 1.2.0
+- Fixed the process with memory (HOMC): there is now one transition table per order 1 to K, and every table is conditioned on the full context of previous activities. Before, the effective order was 1 for ```process_memory``` 2, and other orders raised an error
+- Fixed the conditional probabilities of the process with memory, such that they sum to 1 within every context
+- Fixed ```med_ent_n_transitions``` being ignored by the process with memory
+- Fixed the initial probabilities of the process with memory, such that a trace cannot start in the absorption state
+- Fixed an endless loop in the process with memory, when no state led to the absorption state
+- Added ```p_abs_min```: the minimum probability of ending the trace from any state of the process with memory (default 0.05), which guarantees that every trace ends
+- Added ```min_entropy``` for the process with memory, as a deterministic process of order K. Before, this setting silently used the memoryless process
+- Added the transition tables of the process with memory as a plain dictionary ```Phi[order][context]```, which can be inspected and stored directly
+- Added tests for the process with memory
+- Removed the ```Memory_process``` module (ported from Pomegranate) and the ```networkx``` dependency. Generating a process with memory is now much faster, as the sampling no longer loops over the full table for every event
+
+**Please note:** Event-logs generated with ```process_type = "memory"``` in version 1.2.0 differ from earlier versions for the same seed value, as the earlier versions did not produce a process of order K.
+
 ## Whats new: Version 1.1.3
 - Added support for process memory with HOMC of order > 4
 - Added Example notebooks in ```examples/``` folder
