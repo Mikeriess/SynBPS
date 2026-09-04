@@ -8,22 +8,27 @@ import numpy as np
 import pandas as pd
 
 def Generate_lambdas(D,t, lambd_range, seed_value=1337):
-    import numpy as np
-    #np.random.seed(seed_value)
     """
     Generate lambda values for capital lambda matrix
     
     Matrix is:
-        D x T
+        T x D
         
-        D = statespace
-        T = timesteps
+        T = timesteps (rows)
+        D = statespace (columns)
+    
+    The rows are drawn one timestep at a time from the stream of the seed,
+    so the first rows do not change when the number of timesteps t grows
     """
+    from SynBPS.simulation.simulation_helpers import make_rng
     
-    Lambd = np.random.uniform(low=0.0001, high=lambd_range,size=(len(D)*t))
-    Lambd = Lambd.reshape(len(D),t)
+    #own random stream for the duration parameters
+    rng = make_rng(seed_value, "lambdas")
     
-    Lambd = pd.DataFrame(Lambd).T
+    #draw the T x D matrix, one timestep (row) at a time
+    Lambd = rng.uniform(low=0.0001, high=lambd_range, size=(t, len(D)))
+    
+    Lambd = pd.DataFrame(Lambd)
     Lambd.columns = D
     
     return Lambd

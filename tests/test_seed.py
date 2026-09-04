@@ -102,3 +102,39 @@ def test_make_rng_streams():
     #unknown stream
     with pytest.raises(ValueError):
         make_rng(5, "durations")
+
+
+def test_lambda_rows_stable():
+    """
+    The duration parameters Lambda depend on the seed only, and the first rows do not change when the number of timesteps grows
+    """
+    import numpy as np
+    import pandas as pd
+    from SynBPS.simulation.Duration.duration_helpers import Generate_lambdas
+    
+    D = ["a","b","c","d","e"]
+    
+    small = Generate_lambdas(D, t=3, lambd_range=1, seed_value=5)
+    big = Generate_lambdas(D, t=8, lambd_range=1, seed_value=5)
+    
+    #timesteps are rows, activities are columns
+    assert big.shape == (8, 5)
+    assert list(big.columns) == D
+    
+    #the first rows are the same for a longer matrix
+    pd.testing.assert_frame_equal(small, big.iloc[:3])
+    
+    #values are in the range of the uniform distribution
+    assert ((big.values >= 0.0001) & (big.values < 1)).all()
+    
+    #another seed gives other values
+    other = Generate_lambdas(D, t=8, lambd_range=1, seed_value=6)
+    assert not big.equals(other)
+    
+    #the global numpy stream is not used
+    np.random.seed(0)
+    before = np.random.random()
+    np.random.seed(0)
+    Generate_lambdas(D, t=8, lambd_range=1, seed_value=5)
+    after = np.random.random()
+    assert before == after
