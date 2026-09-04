@@ -97,6 +97,7 @@ def create_homc(D = ["a","b","c","d","e"],
     """
     import numpy as np
     import itertools
+    from SynBPS.simulation.simulation_helpers import make_rng
     
     #error handling
     if K < 1:
@@ -111,8 +112,8 @@ def create_homc(D = ["a","b","c","d","e"],
     if p_abs_min < 0 or p_abs_min >= 1:
         raise ValueError("p_abs_min must be between 0 and 1 (1 excluded). Set p_abs_min to 0 to disable the absorption guarantee.")
     
-    #one random generator for all tables (reproducible from seed_value)
-    rng = np.random.default_rng(seed_value)
+    #one random stream for all tables (reproducible from seed_value)
+    rng = make_rng(seed_value, "homc_tables")
     
     # Including absorption state
     D_abs = D.copy()
@@ -240,6 +241,7 @@ def Process_with_memory(D = ["a","b","c","d","e"],
     HOMC : dict with the initial probabilities P0 and the transition tables Phi
     """
     import numpy as np
+    from SynBPS.simulation.simulation_helpers import make_rng
     
     ##### Part 1: Generate the transition probabilities
     
@@ -258,8 +260,8 @@ def Process_with_memory(D = ["a","b","c","d","e"],
     P0 = HOMC["P0"]
     Phi = HOMC["Phi"]
     
-    #random generator for the sampling (separate stream, but from the same seed)
-    rng = np.random.default_rng(seed_value+1)
+    #random stream for the sampling (independent of the stream of the tables)
+    rng = make_rng(seed_value, "homc_sampling")
     
     ##### Part 2: Draw from the distributions
     
