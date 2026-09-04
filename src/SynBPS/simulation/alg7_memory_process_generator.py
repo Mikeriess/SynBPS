@@ -100,16 +100,16 @@ def create_homc(D = ["a","b","c","d","e"],
     
     #error handling
     if K < 1:
-        raise Exception("process_memory (K) must be 1 or larger for the process with memory. Use process_type memoryless for a process without memory.")
+        raise ValueError("process_memory (K) must be 1 or larger for the process with memory. Use process_type memoryless for a process without memory.")
     
     if mode not in ["min_entropy","med_entropy","max_entropy"]:
-        raise Exception("process_entropy must be min_entropy, med_entropy or max_entropy for the process with memory. Custom distributions are only supported for process_type memoryless.")
+        raise ValueError("process_entropy must be min_entropy, med_entropy or max_entropy for the process with memory. Custom distributions are only supported for process_type memoryless.")
     
     if mode == "med_entropy" and (n_transitions < 2 or n_transitions > len(D)+1):
-        raise Exception("med_ent_n_transitions must be between 2 and the statespace size plus 1 (the absorption state). Change med_ent_n_transitions or statespace_size.")
+        raise ValueError("med_ent_n_transitions must be between 2 and the statespace size plus 1 (the absorption state). Change med_ent_n_transitions or statespace_size.")
     
     if p_abs_min < 0 or p_abs_min >= 1:
-        raise Exception("p_abs_min must be between 0 and 1 (1 excluded). Set p_abs_min to 0 to disable the absorption guarantee.")
+        raise ValueError("p_abs_min must be between 0 and 1 (1 excluded). Set p_abs_min to 0 to disable the absorption guarantee.")
     
     #one random generator for all tables (reproducible from seed_value)
     rng = np.random.default_rng(seed_value)

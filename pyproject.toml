@@ -27,7 +27,7 @@ classifiers = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-python_files = ["test_eventlog.py", "test_seed.py"]
+python_files = ["test_*.py"]
 
 [project.urls]
 Homepage = "https://github.com/mikeriess/synbps"

@@ -36,7 +36,7 @@ def generate_eventlog(curr_settings, verbose=False):
         print("Using custom distributions:\n", curr_settings["custom_distributions"])
         custom_dist = curr_settings["custom_distributions"]
         if curr_settings["process_entropy"] != "custom":
-            raise("Custom distributions have been specified, but process entropy is set to min, med or max. Please remove custom_distributions or set process_entropy to 'custom'")
+            raise ValueError("Custom distributions have been specified, but process_entropy is not custom. Remove custom_distributions or set process_entropy to custom.")
 
     # set the seed 
     from numpy.random import seed
@@ -86,7 +86,7 @@ def generate_eventlog(curr_settings, verbose=False):
     # Generate an event-log
     if process_type == "memory":
         if "custom_distributions" in curr_settings:
-            raise Exception("Cannot use custom distribution with memory process. Change to memoryless or set custom_distributions to None")
+            raise ValueError("Cannot use custom distributions with the process with memory. Change process_type to memoryless or remove custom_distributions.")
 
         # HOMC of order K for all entropy levels (min_entropy is a deterministic process with memory)
         Theta, Phi = Process_with_memory(D = statespace, 

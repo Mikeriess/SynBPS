@@ -73,7 +73,7 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
         Lambd.columns = D
 
         if len(Lambd) < max_trace_length:
-            raise("T-axis of Lambd is < the maximal trace length. Please specify a larger Lambda matrix.")
+            raise ValueError("The Lambda file has fewer rows than the longest trace (incl. the absorption state). Add rows to the Lambda file.")
     
     # Generate arrival times
     theta_time, z = Generate_trace_arrivals(lambd = settings["inter_arrival_time"], 
