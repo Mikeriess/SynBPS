@@ -340,3 +340,36 @@ def test_memory_invalid_settings():
     
     with pytest.raises(Exception):
         create_homc(D, K=2, mode="custom")
+
+
+def test_memoryless_n_transitions():
+    """
+    med_ent_n_transitions determines the number of possible transitions from each state of the memoryless process
+    """
+    import numpy as np
+    from SynBPS.simulation.alg6_memoryless_process_generator import Process_without_memory
+    from SynBPS.simulation.simulate_eventlog import generate_eventlog
+    
+    D = ["a","b","c","d","e"]
+    
+    #n to n+1 non-zero entries per row (alg 5 can add the absorption state), and the absorption state is absorbing
+    for n in [2,3,5]:
+        np.random.seed(3)
+        Theta, Phi = Process_without_memory(D=D, mode="med_entropy", num_traces=50, num_transitions=n, seed_value=3)
+        P = Phi[1]
+        for state in D:
+            assert n <= np.sum(P.loc[state].values > 0) <= n+1
+        assert P.loc["END", "END"] == 1
+    
+    #the setting reaches the process through generate_eventlog: at most n activities follow an activity
+    log = generate_eventlog(eventlog_settings(process_type="memoryless", med_ent_n_transitions=2, number_of_traces=200))
+    successors = {}
+    for caseid in log.caseid.unique():
+        activities = log.loc[log.caseid == caseid].sort_values("activity_no").activity.tolist()
+        for t in range(1,len(activities)):
+            successors.setdefault(activities[t-1], set()).add(activities[t])
+    assert max(len(s) for s in successors.values()) <= 2
+    
+    #a statespace below 5 works with a matching number of transitions
+    log = generate_eventlog(eventlog_settings(process_type="memoryless", statespace_size=3, med_ent_n_transitions=2, number_of_traces=50))
+    assert len(log.caseid.unique()) == 50

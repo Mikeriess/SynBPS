@@ -130,7 +130,7 @@ def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
         #get the last column
         lastcol = P[:,len(D_orig)-1]
         
-        value_to_add = np.random.uniform(0.01,1.0,1)
+        value_to_add = np.random.uniform(0.01,1.0)
         #draw a row randomly, which is not the last row
         idx = np.random.choice(list(range(0,len(lastcol)-1)),
                                size=1)[0]

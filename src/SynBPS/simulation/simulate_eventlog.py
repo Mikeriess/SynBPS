@@ -238,6 +238,7 @@ def generate_eventlog(curr_settings, verbose=False):
         Theta, Phi = Process_without_memory(D = statespace, 
                                 mode = process_entropy, 
                                 num_traces=number_of_traces, 
+                                num_transitions=num_transitions, 
                                 custom_distribution=custom_dist,
                                 seed_value=seed_val)
         
