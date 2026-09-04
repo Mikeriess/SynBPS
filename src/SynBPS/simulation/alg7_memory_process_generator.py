@@ -40,8 +40,8 @@ def Generate_context_probabilities(D_abs = ["a","b","c","d","e","END"],
     abs_idx = len(D_abs)-1
     
     if mode == "max_entropy":
-        #all transitions are possible, with random weights (alg 4)
-        L = rng.uniform(0,1,len(D_abs))
+        #all transitions are equally likely (alg 4)
+        L = np.ones(len(D_abs))
     
     if mode == "med_entropy":
         #draw n states from D_abs, without replacement (alg 5)
