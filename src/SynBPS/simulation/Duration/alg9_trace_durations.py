@@ -43,6 +43,10 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
     
     from SynBPS.simulation.Duration.duration_helpers import Generate_lambdas, Resource_offset, TimeSinceMonday, Deterministic_offset
     from SynBPS.simulation.Arrival.alg1_trace_arrivals import Generate_trace_arrivals
+    from SynBPS.simulation.simulation_helpers import make_rng
+    
+    #one random stream per component, independent of each other and of the control-flow
+    rng_resource = make_rng(seed_value, "resource")
 
     
     
@@ -151,7 +155,7 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
             h_t = Resource_offset(m = settings["resource_availability_m"], 
                                   p = settings["resource_availability_p"], 
                                   n = settings["resource_availability_n"],
-                                  seed_value=seed_value)
+                                  rng=rng_resource)
             H.append(h_t)
 
             """

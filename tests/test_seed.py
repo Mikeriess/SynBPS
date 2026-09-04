@@ -1,5 +1,7 @@
 import pytest
 
+from test_eventlog import eventlog_settings
+
 def test_basic_simulation():
     # Create a simple process
     eventlog_settings = {
@@ -61,7 +63,9 @@ def test_basic_simulation():
     # create the second log using seed
     log2 = generate_eventlog(eventlog_settings, verbose=True)
 
-    assert len(log) == len(log2)
+    # the logs must be identical in every column
+    import pandas as pd
+    pd.testing.assert_frame_equal(log, log2)
 
 def test_memoryless_process_uses_its_seed():
     """
@@ -163,3 +167,57 @@ def test_arrival_times_stable():
     Generate_trace_arrivals(lambd=1.5, n_arrivals=9, seed_value=5)
     after = np.random.random()
     assert before == after
+
+
+def test_resource_offset():
+    """
+    The resource offset is a multiple of m, reproducible from its stream, and has the mean of the geometric waiting time
+    """
+    import numpy as np
+    from SynBPS.simulation.simulation_helpers import make_rng
+    from SynBPS.simulation.Duration.duration_helpers import Resource_offset
+    
+    #same stream, same waiting times
+    rng1 = make_rng(1, "resource")
+    rng2 = make_rng(1, "resource")
+    h1 = [Resource_offset(m=0.041, p=0.5, n=3, rng=rng1) for i in range(20)]
+    h2 = [Resource_offset(m=0.041, p=0.5, n=3, rng=rng2) for i in range(20)]
+    assert h1 == h2
+    
+    #every waiting time is a positive multiple of m
+    for h in h1:
+        assert h >= 0.041
+        assert abs(h/0.041 - round(h/0.041)) < 1e-9
+    
+    #an agent is always available: exactly one request
+    assert Resource_offset(m=0.041, p=1, n=3, rng=make_rng(1, "resource")) == 0.041
+    
+    #no agent can ever be available
+    with pytest.raises(ValueError):
+        Resource_offset(m=0.041, p=0, n=3, rng=make_rng(1, "resource"))
+    
+    #the mean waiting time is m divided by the probability of at least one available agent
+    rng = make_rng(2, "resource")
+    draws = [Resource_offset(m=0.041, p=0.5, n=3, rng=rng) for i in range(20000)]
+    assert abs(np.mean(draws) - 0.041/0.875) < 0.02*0.041/0.875
+    
+    #without a generator, the global numpy stream is used
+    np.random.seed(0)
+    a = Resource_offset(m=0.041, p=0.5, n=3)
+    np.random.seed(0)
+    b = Resource_offset(m=0.041, p=0.5, n=3)
+    assert a == b
+
+
+def test_log_reproducible_for_all_processes():
+    """
+    Two event-logs from the same settings are identical in every column, for both process types and all entropy levels
+    """
+    import pandas as pd
+    from SynBPS.simulation.simulate_eventlog import generate_eventlog
+    
+    for process_type in ["memoryless", "memory"]:
+        for process_entropy in ["min_entropy", "med_entropy", "max_entropy"]:
+            log1 = generate_eventlog(eventlog_settings(process_type=process_type, process_entropy=process_entropy, number_of_traces=60))
+            log2 = generate_eventlog(eventlog_settings(process_type=process_type, process_entropy=process_entropy, number_of_traces=60))
+            pd.testing.assert_frame_equal(log1, log2)

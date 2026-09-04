@@ -38,55 +38,37 @@ def Generate_lambdas(D,t, lambd_range, seed_value=1337):
 """
 
 
-def Resource_offset(m = 0.15, p = 0.5, n = 3, seed_value=1337):
-    import numpy as np
-    #np.random.seed(seed_value)
+def Resource_offset(m = 0.15, p = 0.5, n = 3, seed_value=1337, rng=None):
     """
     Parameters
     ----------
     m : time between requests
     p : probability of getting an idle agent
     n : number of agents
+    seed_value : not used, the stream is given by rng
+    rng : numpy random generator (the global numpy stream is used when None)
 
     Returns
     -------
-    h : TYPE
-        DESCRIPTION.
+    h : resource availability offset (waiting time until an agent is available)
 
     """
+    import numpy as np
     
-    # initial value
-    #h = 0
+    # probability that at least one of the n agents is available at a request
+    q = 1 - (1 - p)**n
     
-    # get number of trials before success
-    #k = np.random.binomial(n, p, size=1)[0]
+    #error handling
+    if q <= 0:
+        raise ValueError("No agent can ever be available. Set resource_availability_p above 0 and resource_availability_n to 1 or more.")
     
-    # Add penalty for every trial until success (of getting an agent)
-    #h = m*k
-
-    ################################
-
-    # Create a random number generator without setting a global seed
-    rng = np.random.default_rng()
-
-    # initialize; no agent 
-    success = False
-
-    # number of trials needed 
-    num_trials = 0
+    # number of requests until an agent is available (the first request counts)
+    # geometric distribution, which is the same as repeating binomial trials until the first success
+    if rng is None:
+        k = np.random.geometric(q)
+    if rng is not None:
+        k = rng.geometric(q)
     
-    # Continue trials until at least one success is achieved
-    while success == False:
-        num_trials += 1
-        # Simulate one trial across all servers using binomial distribution
-        successes = rng.binomial(n, p)
-        # Check if at least one server succeeded
-        if np.sum(successes) > 0:
-            success = True
-
-    # calculate the total waiting time for an agent
-    k = num_trials #trials_until_success(p, num_servers=n)
-
     # Add penalty for every trial until success (of getting an agent)
     h = m * k
     return h
