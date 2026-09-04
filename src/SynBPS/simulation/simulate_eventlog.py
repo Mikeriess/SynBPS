@@ -19,7 +19,7 @@ def generate_eventlog(curr_settings, verbose=False):
             resource_availability_n (int): Number of agents in the process.
             resource_availability_m (float): Waiting time in full days when no agent is available.
             activity_duration_lambda_range (float): Variation between activity durations.
-            Deterministic_offset_W (str): Business hours definition. Example: "weekdays".
+            Deterministic_offset_W (str): Business hours definition. Options: "weekdays", "all-week" or "none" (no closed hours).
             Deterministic_offset_u (int): Time unit for a full week (e.g., 7 for days, 168 for hours).
             datetime_offset (int): Offset for timestamps in years after 1970.
             seed_value (int): Seed value for random number generation.

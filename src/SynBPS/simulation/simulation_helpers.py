@@ -10,9 +10,13 @@ def make_D(statespace):
     return D
 
 def make_workweek(workweek):
+    #error handling
+    if workweek not in ["weekdays", "all-week", "none"]:
+        raise ValueError("Deterministic_offset_W must be weekdays, all-week or none, but is " + str(workweek) + ". Change Deterministic_offset_W in the settings.")
+    
     if workweek == "weekdays":
         # CLOSED HOURS FROM
-        W = [[0.001, #monday
+        W = [[0.0, #monday
              1, #tuesday
              2, #wednesday
              3, #thursday
@@ -28,7 +32,7 @@ def make_workweek(workweek):
 
     if workweek == "all-week":
         # CLOSED HOURS FROM
-        W = [[0.001,
+        W = [[0.0,
              1, 
              2, 
              3,
@@ -45,6 +49,12 @@ def make_workweek(workweek):
              5.5, #saturday
              6.5, #sunday
              7.5]] 
+    
+    if workweek == "none":
+        # no closed hours: an empty list of intervals, so the deterministic offset is always 0
+        W = [[],
+             []]
+    
     return W
 
 def flatten(listoflists):    
