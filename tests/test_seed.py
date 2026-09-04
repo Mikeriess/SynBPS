@@ -80,3 +80,25 @@ def test_memoryless_process_uses_its_seed():
     
     assert Theta1 == Theta2
     assert Phi1[1].equals(Phi2[1])
+
+
+def test_make_rng_streams():
+    """
+    One independent random stream per component, reproducible from the seed
+    """
+    import numpy as np
+    from SynBPS.simulation.simulation_helpers import make_rng
+    
+    #same seed and stream: same draws
+    assert np.array_equal(make_rng(5, "lambdas").random(5), make_rng(5, "lambdas").random(5))
+    
+    #different streams of the same seed differ
+    assert not np.array_equal(make_rng(5, "lambdas").random(5), make_rng(5, "arrivals").random(5))
+    
+    #the sampling stream of seed 5 is not the table stream of seed 6, and no stream is the plain generator of the seed
+    assert not np.array_equal(make_rng(5, "homc_sampling").random(5), make_rng(6, "homc_tables").random(5))
+    assert not np.array_equal(make_rng(5, "homc_tables").random(5), np.random.default_rng(5).random(5))
+    
+    #unknown stream
+    with pytest.raises(ValueError):
+        make_rng(5, "durations")

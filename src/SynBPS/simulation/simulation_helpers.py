@@ -60,3 +60,35 @@ def make_workweek(workweek):
 def flatten(listoflists):    
     flattened_list = [item for sublist in listoflists for item in sublist]
     return flattened_list
+def make_rng(seed_value, stream):
+    """
+    Random generator for one component of the simulation, independent of the other components.
+    
+    Parameters
+    ----------
+    seed_value : seed value of the event-log
+    stream : name of the component, see the list below
+
+    Returns
+    -------
+    rng : numpy random generator
+    """
+    import numpy as np
+    
+    #fixed index per component. new components are appended, so the existing streams never change
+    streams = {"homc_tables":0, 
+               "homc_sampling":1, 
+               "arrivals":2, 
+               "lambdas":3, 
+               "resource":4, 
+               "stability":5, 
+               "duration":6}
+    
+    #error handling
+    if stream not in streams:
+        raise ValueError("Unknown stream " + str(stream) + ". Use one of " + ", ".join(streams) + ".")
+    
+    #the index is a spawn key of the seed, so no component shares its stream with another component or with another seed
+    rng = np.random.default_rng(np.random.SeedSequence(int(seed_value), spawn_key=(streams[stream],)))
+    
+    return rng
