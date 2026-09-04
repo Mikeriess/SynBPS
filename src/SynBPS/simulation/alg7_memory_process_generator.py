@@ -40,8 +40,8 @@ def Generate_context_probabilities(D_abs = ["a","b","c","d","e","END"],
     abs_idx = len(D_abs)-1
     
     if mode == "max_entropy":
-        #all transitions are possible, with random weights (alg 4)
-        L = rng.uniform(0,1,len(D_abs))
+        #all transitions are equally likely (alg 4)
+        L = np.ones(len(D_abs))
     
     if mode == "med_entropy":
         #draw n states from D_abs, without replacement (alg 5)
@@ -97,22 +97,23 @@ def create_homc(D = ["a","b","c","d","e"],
     """
     import numpy as np
     import itertools
+    from SynBPS.simulation.simulation_helpers import make_rng
     
     #error handling
     if K < 1:
-        raise Exception("process_memory (K) must be 1 or larger for the process with memory. Use process_type memoryless for a process without memory.")
+        raise ValueError("process_memory (K) must be 1 or larger for the process with memory. Use process_type memoryless for a process without memory.")
     
     if mode not in ["min_entropy","med_entropy","max_entropy"]:
-        raise Exception("process_entropy must be min_entropy, med_entropy or max_entropy for the process with memory. Custom distributions are only supported for process_type memoryless.")
+        raise ValueError("process_entropy must be min_entropy, med_entropy or max_entropy for the process with memory. Custom distributions are only supported for process_type memoryless.")
     
     if mode == "med_entropy" and (n_transitions < 2 or n_transitions > len(D)+1):
-        raise Exception("med_ent_n_transitions must be between 2 and the statespace size plus 1 (the absorption state). Change med_ent_n_transitions or statespace_size.")
+        raise ValueError("med_ent_n_transitions must be between 2 and the statespace size plus 1 (the absorption state). Change med_ent_n_transitions or statespace_size.")
     
     if p_abs_min < 0 or p_abs_min >= 1:
-        raise Exception("p_abs_min must be between 0 and 1 (1 excluded). Set p_abs_min to 0 to disable the absorption guarantee.")
+        raise ValueError("p_abs_min must be between 0 and 1 (1 excluded). Set p_abs_min to 0 to disable the absorption guarantee.")
     
-    #one random generator for all tables (reproducible from seed_value)
-    rng = np.random.default_rng(seed_value)
+    #one random stream for all tables (reproducible from seed_value)
+    rng = make_rng(seed_value, "homc_tables")
     
     # Including absorption state
     D_abs = D.copy()
@@ -240,6 +241,7 @@ def Process_with_memory(D = ["a","b","c","d","e"],
     HOMC : dict with the initial probabilities P0 and the transition tables Phi
     """
     import numpy as np
+    from SynBPS.simulation.simulation_helpers import make_rng
     
     ##### Part 1: Generate the transition probabilities
     
@@ -258,8 +260,8 @@ def Process_with_memory(D = ["a","b","c","d","e"],
     P0 = HOMC["P0"]
     Phi = HOMC["Phi"]
     
-    #random generator for the sampling (separate stream, but from the same seed)
-    rng = np.random.default_rng(seed_value+1)
+    #random stream for the sampling (independent of the stream of the tables)
+    rng = make_rng(seed_value, "homc_sampling")
     
     ##### Part 2: Draw from the distributions
     

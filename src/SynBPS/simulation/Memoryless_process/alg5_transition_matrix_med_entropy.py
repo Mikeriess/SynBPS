@@ -31,21 +31,18 @@ def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
         DESCRIPTION.
 
     """
-    import sys
     import numpy as np
     #np.random.seed(seed_value) 
 
     #error handling
     if len(D) < n_tranitions:
-        print("n_transitions cannot be larger than the statespace")
-        sys.exit()
+        raise ValueError("med_ent_n_transitions cannot be larger than the statespace size. Change med_ent_n_transitions or statespace_size.")
         
     if n_tranitions < 3:
         print("n_transitions is less than 3, which can cause problems for large state-spaces")
         
     if n_tranitions < 2:
-        print("n_transitions is less than 2, which will lead to an endless search")
-        sys.exit()
+        raise ValueError("med_ent_n_transitions must be 2 or larger, as a single transition leads to an endless search. Change med_ent_n_transitions.")
     
     
     ####################################
@@ -104,7 +101,7 @@ def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
         #draw probabilities for each state s
         #and replace that index of L with x_i
         for i in idx:
-            x_i = np.random.uniform(0,1,1)
+            x_i = np.random.uniform(0,1)
             L[i] = x_i
         
         #normalize to probability space
@@ -133,7 +130,7 @@ def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
         #get the last column
         lastcol = P[:,len(D_orig)-1]
         
-        value_to_add = np.random.uniform(0.01,1.0,1)
+        value_to_add = np.random.uniform(0.01,1.0)
         #draw a row randomly, which is not the last row
         idx = np.random.choice(list(range(0,len(lastcol)-1)),
                                size=1)[0]

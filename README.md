@@ -7,6 +7,19 @@ SynBPS is short for Synthetic Business Process Simulation. This framework is des
 
 ![image](https://github.com/Mikeriess/SynBPS/blob/main/docs/illustration.png)
 
+## Whats new: Version 1.1.9
+- Fixed the resource offset ```h_t``` (and with it all timestamps) not being reproducible from ```seed_value```. The waiting time is now drawn from the geometric distribution of the number of requests until an agent is available, which has the same distribution as the previous loop of binomial draws
+- Fixed ```med_ent_n_transitions``` being ignored by the memoryless process (5 transitions were always used, and a ```statespace_size``` below 5 stopped the interpreter)
+- Fixed the duration parameters ```Lambda``` changing with the longest trace, such that a log with more traces from the same seed had other duration parameters
+- Fixed invalid settings raising a ```TypeError``` or stopping the interpreter. All settings are now checked at the start of ```generate_eventlog```, and a ```ValueError``` lists every invalid setting
+- Fixed unknown values of ```Deterministic_offset_W``` raising an ```UnboundLocalError```, and the first closed interval of the business hours starting at 0.001 instead of 0
+- Added ```Deterministic_offset_W = "none"``` for a process without closed hours
+- Added one independent random stream per component: arrival times, duration parameters, resource offsets, stability offsets, activity durations, and the tables and the sampling of the process with memory. Changing one setting no longer changes the draws of the other components, and the first traces of a log are identical when ```number_of_traces``` is increased
+- Changed ```max_entropy``` for the process with memory to equal transition probabilities from every context, as in the memoryless process (alg. 4). With ```max_entropy```, ```process_memory``` therefore no longer changes the control-flow
+- Added tests for reproducibility, the settings check and the business hours
+
+**Please note:** Durations and timestamps, and the control-flow of the process with memory, differ numerically from version 1.1.8 and earlier for the same seed value. The control-flow of the memoryless process is unchanged for ```min_entropy```, ```max_entropy``` and ```custom```, and differs for ```med_entropy``` because ```med_ent_n_transitions``` is now used.
+
 ## Whats new: Version 1.1.8
 - Fixed the process with memory (HOMC): there is now one transition table per order 1 to K, and every table is conditioned on the full context of previous activities. Before, the effective order was 1 for ```process_memory``` 2, and other orders raised an error
 - Fixed the conditional probabilities of the process with memory, such that they sum to 1 within every context

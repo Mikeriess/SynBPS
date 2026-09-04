@@ -43,6 +43,12 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
     
     from SynBPS.simulation.Duration.duration_helpers import Generate_lambdas, Resource_offset, TimeSinceMonday, Deterministic_offset
     from SynBPS.simulation.Arrival.alg1_trace_arrivals import Generate_trace_arrivals
+    from SynBPS.simulation.simulation_helpers import make_rng
+    
+    #one random stream per component, independent of each other and of the control-flow
+    rng_resource = make_rng(seed_value, "resource")
+    rng_stability = make_rng(seed_value, "stability")
+    rng_duration = make_rng(seed_value, "duration")
 
     
     
@@ -60,11 +66,12 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
     # for lambdas
     max_trace_length = max(len(x) for x in Theta)
     
-    # Generate duration distributions
-    Lambd = Generate_lambdas(D=D, 
-                             t=max_trace_length, 
-                             lambd_range=settings["activity_duration_lambda_range"],
-                             seed_value=seed_value)
+    # Generate duration distributions (unless custom distributions are given)
+    if custom_distribution is None:
+        Lambd = Generate_lambdas(D=D, 
+                                 t=max_trace_length, 
+                                 lambd_range=settings["activity_duration_lambda_range"],
+                                 seed_value=seed_value)
     
     # check for custom distributions
     if custom_distribution is not None:
@@ -73,7 +80,7 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
         Lambd.columns = D
 
         if len(Lambd) < max_trace_length:
-            raise("T-axis of Lambd is < the maximal trace length. Please specify a larger Lambda matrix.")
+            raise ValueError("The Lambda file has fewer rows than the longest trace (incl. the absorption state). Add rows to the Lambda file.")
     
     # Generate arrival times
     theta_time, z = Generate_trace_arrivals(lambd = settings["inter_arrival_time"], 
@@ -151,7 +158,7 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
             h_t = Resource_offset(m = settings["resource_availability_m"], 
                                   p = settings["resource_availability_p"], 
                                   n = settings["resource_availability_n"],
-                                  seed_value=seed_value)
+                                  rng=rng_resource)
             H.append(h_t)
 
             """
@@ -163,7 +170,7 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
                 b_t = 0
                 
             if settings["process_stability_scale"] > 0:
-                b_t = np.random.exponential(settings["process_stability_scale"],1)[0]
+                b_t = rng_stability.exponential(settings["process_stability_scale"])
                         
             B.append(b_t)
             
@@ -196,7 +203,7 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
             lambdavalue = Lambd[e_t].loc[t]
             
             # Generate the activity duration from exponential dist
-            v_t = np.random.exponential(scale=lambdavalue, size=1)[0]
+            v_t = rng_duration.exponential(scale=lambdavalue)
             V.append(v_t)
                        
             """
