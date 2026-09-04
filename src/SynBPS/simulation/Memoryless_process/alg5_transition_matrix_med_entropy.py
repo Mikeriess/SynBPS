@@ -101,7 +101,7 @@ def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
         #draw probabilities for each state s
         #and replace that index of L with x_i
         for i in idx:
-            x_i = np.random.uniform(0,1,1)
+            x_i = np.random.uniform(0,1)
             L[i] = x_i
         
         #normalize to probability space
