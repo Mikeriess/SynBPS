@@ -221,3 +221,37 @@ def test_log_reproducible_for_all_processes():
             log1 = generate_eventlog(eventlog_settings(process_type=process_type, process_entropy=process_entropy, number_of_traces=60))
             log2 = generate_eventlog(eventlog_settings(process_type=process_type, process_entropy=process_entropy, number_of_traces=60))
             pd.testing.assert_frame_equal(log1, log2)
+
+
+def test_first_traces_stable_when_more_traces_are_generated():
+    """
+    The first traces of an event-log do not change when number_of_traces grows: a larger log is a larger sample from the same process
+    """
+    import pandas as pd
+    from SynBPS.simulation.simulate_eventlog import generate_eventlog
+    
+    for process_type in ["memoryless", "memory"]:
+        small = generate_eventlog(eventlog_settings(process_type=process_type, number_of_traces=50))
+        big = generate_eventlog(eventlog_settings(process_type=process_type, number_of_traces=80))
+        pd.testing.assert_frame_equal(big.iloc[:len(small)].reset_index(drop=True), small)
+
+
+def test_common_random_numbers():
+    """
+    Changing one setting changes the draws of that component only
+    """
+    from SynBPS.simulation.simulate_eventlog import generate_eventlog
+    
+    #resource availability: control-flow, arrivals, stability offsets and durations are unchanged
+    log1 = generate_eventlog(eventlog_settings(resource_availability_p=0.5))
+    log2 = generate_eventlog(eventlog_settings(resource_availability_p=0.9))
+    for column in ["activity", "z_t", "b_t", "v_t"]:
+        assert log1[column].tolist() == log2[column].tolist()
+    assert log1.h_t.tolist() != log2.h_t.tolist()
+    
+    #process stability: resource offsets and durations are unchanged
+    log3 = generate_eventlog(eventlog_settings(process_stability_scale=0))
+    log4 = generate_eventlog(eventlog_settings(process_stability_scale=0.1))
+    assert (log3.b_t == 0).all()
+    assert log3.v_t.tolist() == log4.v_t.tolist()
+    assert log3.h_t.tolist() == log4.h_t.tolist()

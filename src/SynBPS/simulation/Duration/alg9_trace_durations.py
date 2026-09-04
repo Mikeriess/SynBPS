@@ -47,6 +47,8 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
     
     #one random stream per component, independent of each other and of the control-flow
     rng_resource = make_rng(seed_value, "resource")
+    rng_stability = make_rng(seed_value, "stability")
+    rng_duration = make_rng(seed_value, "duration")
 
     
     
@@ -64,11 +66,12 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
     # for lambdas
     max_trace_length = max(len(x) for x in Theta)
     
-    # Generate duration distributions
-    Lambd = Generate_lambdas(D=D, 
-                             t=max_trace_length, 
-                             lambd_range=settings["activity_duration_lambda_range"],
-                             seed_value=seed_value)
+    # Generate duration distributions (unless custom distributions are given)
+    if custom_distribution is None:
+        Lambd = Generate_lambdas(D=D, 
+                                 t=max_trace_length, 
+                                 lambd_range=settings["activity_duration_lambda_range"],
+                                 seed_value=seed_value)
     
     # check for custom distributions
     if custom_distribution is not None:
@@ -167,7 +170,7 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
                 b_t = 0
                 
             if settings["process_stability_scale"] > 0:
-                b_t = np.random.exponential(settings["process_stability_scale"],1)[0]
+                b_t = rng_stability.exponential(settings["process_stability_scale"])
                         
             B.append(b_t)
             
@@ -200,7 +203,7 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
             lambdavalue = Lambd[e_t].loc[t]
             
             # Generate the activity duration from exponential dist
-            v_t = np.random.exponential(scale=lambdavalue, size=1)[0]
+            v_t = rng_duration.exponential(scale=lambdavalue)
             V.append(v_t)
                        
             """
