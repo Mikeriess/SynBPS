@@ -138,3 +138,28 @@ def test_lambda_rows_stable():
     Generate_lambdas(D, t=8, lambd_range=1, seed_value=5)
     after = np.random.random()
     assert before == after
+
+
+def test_arrival_times_stable():
+    """
+    The arrival times depend on the seed only, and the first arrivals do not change when more traces are generated
+    """
+    import numpy as np
+    from SynBPS.simulation.Arrival.alg1_trace_arrivals import Generate_trace_arrivals
+    
+    theta_small, z_small = Generate_trace_arrivals(lambd=1.5, n_arrivals=5, seed_value=5)
+    theta_big, z_big = Generate_trace_arrivals(lambd=1.5, n_arrivals=9, seed_value=5)
+    assert z_small == z_big[:5]
+    assert len(z_big) == 9
+    
+    #another seed gives other arrival times
+    theta_other, z_other = Generate_trace_arrivals(lambd=1.5, n_arrivals=9, seed_value=6)
+    assert z_other != z_big
+    
+    #the global numpy stream is not used
+    np.random.seed(0)
+    before = np.random.random()
+    np.random.seed(0)
+    Generate_trace_arrivals(lambd=1.5, n_arrivals=9, seed_value=5)
+    after = np.random.random()
+    assert before == after

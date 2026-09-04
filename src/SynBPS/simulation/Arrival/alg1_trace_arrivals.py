@@ -10,8 +10,11 @@ Generation of trace arrival times in a synthetic event-log.
 """
 
 def Generate_trace_arrivals(lambd = 1, n_arrivals=10, seed_value=1337):
-    import numpy as np
-    np.random.seed(seed_value) 
+    from SynBPS.simulation.simulation_helpers import make_rng
+    
+    #own random stream for the arrival times
+    rng = make_rng(seed_value, "arrivals")
+    
     #initialize
     theta = []
     z = []
@@ -20,7 +23,7 @@ def Generate_trace_arrivals(lambd = 1, n_arrivals=10, seed_value=1337):
     
     while len(z) < n_arrivals:
         #draw arrival time
-        x_i = np.random.exponential(lambd,1)[0]
+        x_i = rng.exponential(lambd)
         
         #get a caseid for the case
         case_id = id_counter
