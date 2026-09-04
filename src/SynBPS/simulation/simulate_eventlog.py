@@ -1,3 +1,139 @@
+def check_settings(curr_settings):
+    """
+    Checks the settings of an event-log before the simulation starts.
+
+    Args:
+        curr_settings (dict): The settings dictionary, or a row of a design table. See generate_eventlog for the keys.
+
+    Raises:
+        ValueError: One line per problem found, each ending with the setting to change.
+    """
+
+    # problems found so far
+    problems = []
+
+    # settings which every event-log needs
+    required = ["number_of_traces", "process_entropy", "process_type", "process_memory", "statespace_size",
+                "med_ent_n_transitions", "inter_arrival_time", "process_stability_scale", "resource_availability_p",
+                "resource_availability_n", "resource_availability_m", "activity_duration_lambda_range",
+                "Deterministic_offset_W", "Deterministic_offset_u", "datetime_offset", "seed_value"]
+
+    for key in required:
+        if key not in curr_settings:
+            problems.append(key + " is missing. Add " + key + " to the settings.")
+
+    # a setting as a number, or None if it is missing or not a number (which is noted as a problem)
+    def number(key):
+        if key not in curr_settings:
+            return None
+        try:
+            return float(curr_settings[key])
+        except (TypeError, ValueError):
+            problems.append(key + " must be a number, but is " + str(curr_settings[key]) + ". Change " + key + ".")
+            return None
+
+    # a range check, written such that a missing value (NaN) also fails
+    def in_range(value, low, high, low_included=True, high_included=True):
+        if low_included and high_included:
+            return low <= value <= high
+        if low_included and not high_included:
+            return low <= value < high
+        if not low_included and high_included:
+            return low < value <= high
+        return low < value < high
+
+    process_type = curr_settings["process_type"] if "process_type" in curr_settings else None
+    process_entropy = curr_settings["process_entropy"] if "process_entropy" in curr_settings else None
+
+    if process_type is not None and process_type not in ["memoryless", "memory"]:
+        problems.append("process_type must be memoryless or memory, but is " + str(process_type) + ". Change process_type.")
+
+    if process_entropy is not None and process_entropy not in ["min_entropy", "med_entropy", "max_entropy", "custom"]:
+        problems.append("process_entropy must be min_entropy, med_entropy, max_entropy or custom, but is " + str(process_entropy) + ". Change process_entropy.")
+
+    # custom distributions: only for the memoryless process, and only with process_entropy custom
+    custom_given = "custom_distributions" in curr_settings and curr_settings["custom_distributions"] is not None
+
+    if process_entropy == "custom" and not custom_given:
+        problems.append("process_entropy is custom, but no custom_distributions were given. Add custom_distributions with the files p0, p and Lambda, or change process_entropy.")
+
+    if custom_given and process_entropy != "custom":
+        problems.append("custom_distributions were given, but process_entropy is not custom. Remove custom_distributions or set process_entropy to custom.")
+
+    if custom_given and process_type == "memory":
+        problems.append("custom_distributions cannot be used with the process with memory. Change process_type to memoryless or remove custom_distributions.")
+
+    number_of_traces = number("number_of_traces")
+    if number_of_traces is not None and not in_range(number_of_traces, 1, float("inf")):
+        problems.append("number_of_traces must be 1 or larger, but is " + str(number_of_traces) + ". Change number_of_traces.")
+
+    # the alphabet in make_D has room for 27 activities
+    statespace_size = number("statespace_size")
+    if statespace_size is not None and not in_range(statespace_size, 2, 27):
+        problems.append("statespace_size must be between 2 and 27, but is " + str(statespace_size) + ". Change statespace_size.")
+
+    # number of transitions: only used for medium entropy. the process with memory allows the absorption state as one of them
+    num_transitions = number("med_ent_n_transitions")
+    if process_entropy == "med_entropy" and num_transitions is not None and statespace_size is not None:
+        upper = statespace_size + 1 if process_type == "memory" else statespace_size
+        if not in_range(num_transitions, 2, upper):
+            problems.append("med_ent_n_transitions must be between 2 and " + str(int(upper)) + " for this statespace_size and process_type, but is " + str(num_transitions) + ". Change med_ent_n_transitions.")
+
+    # settings which are only used by the process with memory
+    if process_type == "memory":
+        process_memory = number("process_memory")
+        if process_memory is not None and not in_range(process_memory, 1, float("inf")):
+            problems.append("process_memory must be 1 or larger for the process with memory, but is " + str(process_memory) + ". Change process_memory.")
+
+        p_abs_min = number("p_abs_min")
+        if p_abs_min is not None and not in_range(p_abs_min, 0, 1, high_included=False):
+            problems.append("p_abs_min must be between 0 and 1 (1 excluded), but is " + str(p_abs_min) + ". Change p_abs_min.")
+
+        max_len = number("max_len")
+        if max_len is not None and not in_range(max_len, 2, float("inf")):
+            problems.append("max_len must be 2 or larger, but is " + str(max_len) + ". Change max_len.")
+
+    # time-related settings
+    p = number("resource_availability_p")
+    if p is not None and not in_range(p, 0, 1, low_included=False):
+        problems.append("resource_availability_p must be between 0 (excluded) and 1, but is " + str(p) + ". Change resource_availability_p.")
+
+    n = number("resource_availability_n")
+    if n is not None and not in_range(n, 1, float("inf")):
+        problems.append("resource_availability_n must be 1 or larger, but is " + str(n) + ". Change resource_availability_n.")
+
+    m = number("resource_availability_m")
+    if m is not None and not in_range(m, 0, float("inf")):
+        problems.append("resource_availability_m must be 0 or larger, but is " + str(m) + ". Change resource_availability_m.")
+
+    stability = number("process_stability_scale")
+    if stability is not None and not in_range(stability, 0, float("inf")):
+        problems.append("process_stability_scale must be 0 or larger, but is " + str(stability) + ". Change process_stability_scale.")
+
+    inter_arrival = number("inter_arrival_time")
+    if inter_arrival is not None and not in_range(inter_arrival, 0, float("inf"), low_included=False):
+        problems.append("inter_arrival_time must be larger than 0, but is " + str(inter_arrival) + ". Change inter_arrival_time.")
+
+    # the durations are drawn from Uniform(0.0001, activity_duration_lambda_range)
+    lambd_range = number("activity_duration_lambda_range")
+    if lambd_range is not None and not in_range(lambd_range, 0.0001, float("inf"), low_included=False):
+        problems.append("activity_duration_lambda_range must be larger than 0.0001, but is " + str(lambd_range) + ". Change activity_duration_lambda_range.")
+
+    u = number("Deterministic_offset_u")
+    if u is not None and not in_range(u, 0, float("inf"), low_included=False):
+        problems.append("Deterministic_offset_u must be larger than 0, but is " + str(u) + ". Change Deterministic_offset_u.")
+
+    if "Deterministic_offset_W" in curr_settings and curr_settings["Deterministic_offset_W"] not in ["weekdays", "all-week", "none"]:
+        problems.append("Deterministic_offset_W must be weekdays, all-week or none, but is " + str(curr_settings["Deterministic_offset_W"]) + ". Change Deterministic_offset_W.")
+
+    # numpy accepts seeds from 0 to 2**32 - 1
+    seed_value = number("seed_value")
+    if seed_value is not None and not in_range(seed_value, 0, 2**32 - 1):
+        problems.append("seed_value must be between 0 and 2**32 - 1, but is " + str(seed_value) + ". Change seed_value.")
+
+    if len(problems) > 0:
+        raise ValueError("Invalid settings for the event-log:\n" + "\n".join(problems))
+
 
 def generate_eventlog(curr_settings, verbose=False):
     """
@@ -12,7 +148,7 @@ def generate_eventlog(curr_settings, verbose=False):
             p_abs_min (float): (Default: 0.05) Minimum probability of ending the trace from any state. Only used when process_type is "memory" and process_entropy is "med_entropy" or "max_entropy". A value of 0 removes the guarantee that every trace ends.
             max_len (int): (Default: 10000) Maximum number of events in a trace, after which an exception is raised. Only used when process_type is "memory".
             statespace_size (int): Number of activity types.
-            med_ent_n_transitions (int): Number of transitions for medium entropy. Should be > 2 and < statespace_size.
+            med_ent_n_transitions (int): Number of possible transitions from each state. Only used when process_entropy is "med_entropy". Between 2 and statespace_size (statespace_size + 1 for the process with memory, where the absorption state can be one of them).
             inter_arrival_time (float): Lambda parameter of inter-arrival times.
             process_stability_scale (float): Lambda parameter of process noise.
             resource_availability_p (float): Probability of agent being available (0-1).
@@ -27,16 +163,19 @@ def generate_eventlog(curr_settings, verbose=False):
 
     Returns:
         Pandas dataframe with the simulated event-log
+
+    Raises:
+        ValueError: If a setting is missing or invalid. The message lists every problem found.
     """
 
-    # check for custom distributions
-    if "custom_distributions" not in curr_settings:
-        custom_dist = None
-    if "custom_distributions" in curr_settings:
+    # check all settings first
+    check_settings(curr_settings)
+
+    # check for custom distributions (the key may be missing or None)
+    custom_dist = None
+    if "custom_distributions" in curr_settings and curr_settings["custom_distributions"] is not None:
         print("Using custom distributions:\n", curr_settings["custom_distributions"])
         custom_dist = curr_settings["custom_distributions"]
-        if curr_settings["process_entropy"] != "custom":
-            raise ValueError("Custom distributions have been specified, but process_entropy is not custom. Remove custom_distributions or set process_entropy to custom.")
 
     # set the seed 
     from numpy.random import seed
@@ -85,9 +224,6 @@ def generate_eventlog(curr_settings, verbose=False):
 
     # Generate an event-log
     if process_type == "memory":
-        if "custom_distributions" in curr_settings:
-            raise ValueError("Cannot use custom distributions with the process with memory. Change process_type to memoryless or remove custom_distributions.")
-
         # HOMC of order K for all entropy levels (min_entropy is a deterministic process with memory)
         Theta, Phi = Process_with_memory(D = statespace, 
                             mode = process_entropy, 
