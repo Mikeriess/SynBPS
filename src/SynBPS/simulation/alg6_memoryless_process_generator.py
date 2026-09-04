@@ -13,8 +13,10 @@ def Process_without_memory(D = ["a","b","c","d","e"],
                         seed_value=1337):
     
     import numpy as np
-    #np.random.seed(seed_value)
     import pandas as pd
+    
+    #the memoryless process draws from the global numpy stream, which is seeded here for reproducibility
+    np.random.seed(seed_value)
     
     from SynBPS.simulation.Memoryless_process.alg2_initial_probabilities import GenerateInitialProb
 

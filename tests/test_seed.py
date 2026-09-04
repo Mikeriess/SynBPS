@@ -62,3 +62,21 @@ def test_basic_simulation():
     log2 = generate_eventlog(eventlog_settings, verbose=True)
 
     assert len(log) == len(log2)
+
+def test_memoryless_process_uses_its_seed():
+    """
+    Direct calls of the memoryless process are reproducible from seed_value, whatever the global state was before
+    """
+    import numpy as np
+    from SynBPS.simulation.alg6_memoryless_process_generator import Process_without_memory
+    
+    D = ["a","b","c","d","e"]
+    
+    np.random.seed(0)
+    Theta1, Phi1 = Process_without_memory(D=D, mode="med_entropy", num_traces=20, num_transitions=3, seed_value=9)
+    
+    np.random.seed(1)
+    Theta2, Phi2 = Process_without_memory(D=D, mode="med_entropy", num_traces=20, num_transitions=3, seed_value=9)
+    
+    assert Theta1 == Theta2
+    assert Phi1[1].equals(Phi2[1])
