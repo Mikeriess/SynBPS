@@ -222,6 +222,7 @@ Output is an **inference table** containing predictions and actual target values
 
 3. **Run experiments**
 The experiments can be run using the **run_experiments** function, which takes the training function and evaluation function specified above as its first two arguments. Next, the output directory of the data created during the experiments can be specified if desired (here we use **data/**), followed by the destination file to store the results, and the input design table created in step 1 of this guide. 
+
 .. code-block:: python
 
     # function to run a set of experiments
