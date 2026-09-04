@@ -21,7 +21,7 @@ def test_basic_simulation():
                     # number of activity types
                     "statespace_size":5,
                     
-                    # number of transitions - only used for medium entropy (should be higher than 2 and < statespace size)
+                    # number of possible transitions from each state - only used for medium entropy (between 2 and statespace size, plus 1 for the process with memory)
                     "med_ent_n_transitions":3,
                                     
                     # lambda parameter of inter-arrival times
@@ -36,13 +36,13 @@ def test_basic_simulation():
                     # number of agents in the process
                     "resource_availability_n":3,
 
-                    # waiting time in full days, when no agent is available. 0.041 is 15 minutes
+                    # waiting time in full days per request, when no agent is available. 0.041 days is about 1 hour
                     "resource_availability_m":0.041,
                     
                     # variation between activity durations
                     "activity_duration_lambda_range":1,
                     
-                    # business hours definition: when can cases be processed? ()
+                    # business hours definition: when can cases be processed? weekdays, all-week or none
                     "Deterministic_offset_W":"weekdays",
 
                     # time-unit for a full week: days = 7, hrs = 24*7, etc.
@@ -86,7 +86,7 @@ def eventlog_settings(**overrides):
                     # number of activity types
                     "statespace_size":5,
                     
-                    # number of transitions - only used for medium entropy (should be higher than 2 and < statespace size)
+                    # number of possible transitions from each state - only used for medium entropy (between 2 and statespace size, plus 1 for the process with memory)
                     "med_ent_n_transitions":3,
                                     
                     # lambda parameter of inter-arrival times
@@ -101,13 +101,13 @@ def eventlog_settings(**overrides):
                     # number of agents in the process
                     "resource_availability_n":3,
 
-                    # waiting time in full days, when no agent is available. 0.041 is 15 minutes
+                    # waiting time in full days per request, when no agent is available. 0.041 days is about 1 hour
                     "resource_availability_m":0.041,
                     
                     # variation between activity durations
                     "activity_duration_lambda_range":1,
                     
-                    # business hours definition: when can cases be processed? ()
+                    # business hours definition: when can cases be processed? weekdays, all-week or none
                     "Deterministic_offset_W":"weekdays",
 
                     # time-unit for a full week: days = 7, hrs = 24*7, etc.
