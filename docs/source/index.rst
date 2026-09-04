@@ -8,6 +8,7 @@
    :hidden:
 
    example
+   parameters
 
 Welcome to SynBPS's documentation!
 ===================================

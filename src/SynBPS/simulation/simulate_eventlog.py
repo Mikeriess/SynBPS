@@ -147,18 +147,18 @@ def generate_eventlog(curr_settings, verbose=False):
             process_memory (int): Order of the Higher-Order Markov Chain (HOMC). Only used when process_type is "memory".
             p_abs_min (float): (Default: 0.05) Minimum probability of ending the trace from any state. Only used when process_type is "memory" and process_entropy is "med_entropy" or "max_entropy". A value of 0 removes the guarantee that every trace ends.
             max_len (int): (Default: 10000) Maximum number of events in a trace, after which an exception is raised. Only used when process_type is "memory".
-            statespace_size (int): Number of activity types.
+            statespace_size (int): Number of activity types (2 to 27). The activities are named with letters.
             med_ent_n_transitions (int): Number of possible transitions from each state. Only used when process_entropy is "med_entropy". Between 2 and statespace_size (statespace_size + 1 for the process with memory, where the absorption state can be one of them).
-            inter_arrival_time (float): Lambda parameter of inter-arrival times.
-            process_stability_scale (float): Lambda parameter of process noise.
-            resource_availability_p (float): Probability of agent being available (0-1).
+            inter_arrival_time (float): Mean time between the arrivals of two traces, in days (the scale of the exponential distribution, not a rate).
+            process_stability_scale (float): Mean of the exponential noise added before each event, in days. 0 means no noise.
+            resource_availability_p (float): Probability that an agent is available at a request (above 0, at most 1).
             resource_availability_n (int): Number of agents in the process.
-            resource_availability_m (float): Waiting time in full days when no agent is available.
-            activity_duration_lambda_range (float): Variation between activity durations.
+            resource_availability_m (float): Waiting time per request until an agent is available, in days. 0.041 days is about one hour.
+            activity_duration_lambda_range (float): Upper limit of the uniform distribution (from 0.0001) the mean activity durations Lambda(d, t) are drawn from, in days. The duration of an event is exponential with that mean.
             Deterministic_offset_W (str): Business hours definition. Options: "weekdays", "all-week" or "none" (no closed hours).
-            Deterministic_offset_u (int): Time unit for a full week (e.g., 7 for days, 168 for hours).
+            Deterministic_offset_u (int): Length of a week in the time unit used (7 for days). The business hours of Deterministic_offset_W assume 7.
             datetime_offset (int): Offset for timestamps in years after 1970.
-            seed_value (int): Seed value for random number generation.
+            seed_value (int): Seed of all random streams (0 to 2**32 - 1). The same settings and seed give the same event-log.
             custom_distributions(dict): (Default: None) Dictionary with filenames for custom initial probabilities, transition matrix and duration distribution. Example usage: {"p0":"data/p0.csv", "p":"data/p.csv","Lambda":"data/lambda.csv"}
 
     Returns:

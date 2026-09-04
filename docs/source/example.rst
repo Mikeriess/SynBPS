@@ -36,7 +36,7 @@ Here the settings for the experiments can be modified in the dictionary called r
                     # minimum probability of ending the trace from any state - only used for process with memory
                     "p_abs_min":[0.05],
                     
-                    # number of transitions - only used for medium entropy (should be higher than 2 and < statespace size)
+                    # number of possible transitions from each state - only used for medium entropy (between 2 and statespace size, plus 1 for the process with memory)
                     "med_ent_n_transitions":[2],
                                     
                     # lambda parameter of inter-arrival times
@@ -57,7 +57,7 @@ Here the settings for the experiments can be modified in the dictionary called r
                     # variation between activity durations
                     "activity_duration_lambda_range":[1],
                     
-                    # business hours definition: when can cases be processed?
+                    # business hours definition: when can cases be processed? weekdays, all-week or none
                     "Deterministic_offset_W":["weekdays"],
 
                     # time-unit for a full week: days = 7, hrs = 24*7, etc.
