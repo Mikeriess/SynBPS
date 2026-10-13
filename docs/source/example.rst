@@ -229,7 +229,7 @@ Output is an **inference table** containing predictions and actual target values
 
 4. **Run experiments**
 
-The experiments are run with **run_experiments**, which takes the three functions specified above as its first arguments, followed by the output directory of the data created during the experiments (here **data/**), the destination file of the results, and the design table created in step 1 (read from the output directory). With ``store_eventlogs=True`` the event-log and the inference table of every run are stored in the output directory as well. Runs which are marked as done in the design table are skipped, so an interrupted experiment can be continued by calling the function again.
+The experiments are run with **run_experiments**, which takes the three functions specified above as its first arguments, followed by the output directory of the data created during the experiments (here **data/**), the destination file of the results, and the design table created in step 1 (read from the output directory). With ``store_eventlogs=True`` the event-log and the inference table of every run are stored in the output directory as well. The results file and the design table are written after every run, and runs which are marked as done in the design table are skipped, so an interrupted experiment can be continued by calling the function again: the results of the earlier runs are kept, and the returned table contains every run performed so far. A run which raises an exception is marked with ``Failure = 1`` in the design table, the error is printed, and the experiment continues with the next run. Calling the function again retries the failed runs.
 
 .. code-block:: python
 
