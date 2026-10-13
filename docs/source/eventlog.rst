@@ -68,7 +68,7 @@ All settings are checked before the simulation starts. A missing or invalid sett
 
 The event-log
 ------------------
-The returned dataframe has one row per event, sorted by trace and by position in the trace. Continuous time is measured in days from the start of the simulation; the timestamps are derived from it, such that the open hours of a day are 06:00 to 18:00.
+The returned dataframe has one row per event, sorted by trace and by position in the trace. Continuous time is measured in days from the start of the simulation, where t = 0 is Monday 00:00 of the first week. The timestamps are derived from it, such that the open hours of a day are 06:00 to 18:00: t = 0 is the first Sunday of the year ``1970 + datetime_offset`` at 18:00, and the timestamps are rounded to whole seconds.
 
 .. list-table::
    :header-rows: 1
@@ -103,7 +103,7 @@ The returned dataframe has one row per event, sorted by trace and by position in
    * - ``starttime``, ``endtime``
      - Start and end of the activity in continuous time
    * - ``arrival_datetime``, ``start_datetime``, ``end_datetime``
-     - ``z_t``, ``starttime`` and ``endtime`` as timestamps, in the year 1970 plus ``datetime_offset``
+     - ``z_t``, ``starttime`` and ``endtime`` as timestamps, counted from the first Sunday at 18:00 of the year 1970 plus ``datetime_offset``
    * - ``start_day``, ``start_hour``
      - Weekday and hour of ``start_datetime``
 

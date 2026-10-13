@@ -154,3 +154,39 @@ def test_valid_settings():
     #custom_distributions set to None counts as no custom distributions
     log = generate_eventlog(eventlog_settings(custom_distributions=None, number_of_traces=20))
     assert len(log.caseid.unique()) == 20
+
+
+@pytest.mark.parametrize("datetime_offset", [0, 53, 54, 55, 56, 60])
+def test_timestamps_weekdays_for_every_datetime_offset(datetime_offset):
+    """
+    The weekdays of the timestamps do not depend on datetime_offset: t = 0 is the first Sunday of the year at 18:00,
+    so the business hours are Monday to Friday 06:00 to 18:00 for every offset
+    """
+    import pandas as pd
+    from SynBPS.simulation.simulate_eventlog import generate_eventlog, timestamp_origin
+    
+    origin = timestamp_origin(datetime_offset)
+    assert origin.year == 1970 + datetime_offset
+    assert origin.day_name() == "Sunday"
+    assert origin.day <= 7
+    assert (origin.hour, origin.minute, origin.second) == (18, 0, 0)
+    
+    log = generate_eventlog(eventlog_settings(datetime_offset=datetime_offset, Deterministic_offset_W="weekdays", number_of_traces=200))
+    
+    #the arrival timestamp is the arrival time in continuous time, counted from the origin (rounded to whole seconds)
+    arrival = origin + pd.to_timedelta((log.z_t * 24*60*60).round(), unit="s")
+    pd.testing.assert_series_equal(log.arrival_datetime, arrival, check_names=False)
+    
+    #no activity starts in the weekend, and every activity starts between 06:00 and 18:00
+    assert set(log.start_day.unique()) <= {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"}
+    assert log.start_day.nunique() == 5
+    assert log.start_hour.between(6, 17).all()
+    
+    #an activity which waited for the opening hours starts at exactly 06:00:00
+    waited = log.loc[log.s_t > 0, "start_datetime"]
+    assert len(waited) > 0
+    assert (waited.dt.strftime("%H:%M:%S") == "06:00:00").all()
+    
+    #the log starts in the requested year, within its first week
+    assert log.arrival_datetime.min().year == 1970 + datetime_offset
+    assert (log.arrival_datetime.min() - origin) < pd.Timedelta(days=7)

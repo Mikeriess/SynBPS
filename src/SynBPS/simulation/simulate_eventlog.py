@@ -135,6 +135,51 @@ def check_settings(curr_settings):
         raise ValueError("Invalid settings for the event-log:\n" + "\n".join(problems))
 
 
+def timestamp_origin(datetime_offset):
+    """
+    The timestamp of continuous time t = 0: the first Sunday of the year 1970 + datetime_offset, at 18:00.
+
+    In continuous time, the week starts Monday 00:00 and the closed hours of the business-hour presets are
+    00:00 to 12:00 of each day. The timestamps are placed 6 hours earlier, so the open hours are 06:00 to 18:00,
+    Monday to Friday, for every datetime_offset.
+
+    Args:
+        datetime_offset (int): Years added to 1970.
+
+    Returns:
+        pandas Timestamp
+    """
+    import pandas as pd
+
+    jan_1 = pd.Timestamp(year=1970 + int(datetime_offset), month=1, day=1)
+
+    # days from January 1st to the first Sunday (weekday 6)
+    days_to_sunday = (6 - jan_1.weekday()) % 7
+
+    return jan_1 + pd.Timedelta(days=days_to_sunday, hours=18)
+
+
+def continuous_to_datetime(days, origin):
+    """
+    Converts continuous time, in days since the start of the simulation, to timestamps.
+
+    Args:
+        days (pandas Series): Points in continuous time, in days.
+        origin (pandas Timestamp): The timestamp of t = 0, see timestamp_origin.
+
+    Returns:
+        pandas Series of timestamps, with whole seconds.
+    """
+    import numpy as np
+    import pandas as pd
+
+    # whole seconds. Rounded, so that an activity which waited for the opening hours starts at 06:00:00
+    # (truncation gave 05:59:59 when the product is a fraction of a second below a whole second)
+    seconds = np.round(days * (60*60*24))
+
+    return origin + pd.to_timedelta(seconds, unit="s")
+
+
 def generate_eventlog(curr_settings, verbose=False):
     """
     Generates an event log based on specified parameters.
@@ -157,7 +202,7 @@ def generate_eventlog(curr_settings, verbose=False):
             activity_duration_lambda_range (float): Upper limit of the uniform distribution (from 0.0001) the mean activity durations Lambda(d, t) are drawn from, in days. The duration of an event is exponential with that mean.
             Deterministic_offset_W (str): Business hours definition. Options: "weekdays", "all-week" or "none" (no closed hours).
             Deterministic_offset_u (int): Length of a week in the time unit used (7 for days). The business hours of Deterministic_offset_W assume 7.
-            datetime_offset (int): Offset for timestamps in years after 1970.
+            datetime_offset (int): Offset for timestamps in years after 1970. The simulation starts (t = 0) on the first Sunday of that year at 18:00, so the business hours fall on the same weekdays for every offset.
             seed_value (int): Seed of all random streams (0 to 2**32 - 1). The same settings and seed give the same event-log.
             custom_distributions(dict): (Default: None) Dictionary with filenames for custom initial probabilities, transition matrix and duration distribution. Example usage: {"p0":"data/p0.csv", "p":"data/p.csv","Lambda":"data/lambda.csv"}
 
@@ -297,56 +342,20 @@ def generate_eventlog(curr_settings, verbose=False):
     # fix indexes
     evlog_df.index = list(range(0,len(evlog_df)))
     
-    # convert starttime to a timestamp
+    # convert continuous time to timestamps
     ###################################
-    
-    # year offset
-    #year_offset = (60*60*24*365)*52
-    year_offset = datetime_offset
-    
-    # 01/01/1970 is a thursday
-    weekday_offset = 4 #+ year_offset
-    
-    #scaling from continuous units to preferred time unit
-    time_conversion = (60*60*24)
-    
-    """
-    Generate arrival time
-    """
-    evlog_df['arrival_datetime'] = (evlog_df["z_t"] + weekday_offset)*time_conversion
-    evlog_df['arrival_datetime'] = evlog_df['arrival_datetime'].astype('datetime64[s]') #%yyyy-%mm-%dd %hh:%mm:%ss
-        
-    """
-    Generate activity start time: n_t + resource availability h_t + Stability offset b_t + BH offset s_t
-    """
-    
-    #evlog_df['start_datetime'] = ((evlog_df["Y"] - evlog_df["v_t"]) + weekday_offset)*time_conversion
-    evlog_df['start_datetime'] = ((evlog_df["starttime"]) + weekday_offset)*time_conversion
-    evlog_df['start_datetime'] = evlog_df['start_datetime'].astype('datetime64[s]')
-    
-    """
-    Generate activity end time: n_t + total duration including offsets
-    """
-    
-    evlog_df['end_datetime'] = (evlog_df["endtime"] + weekday_offset)*time_conversion
-    evlog_df['end_datetime'] = evlog_df['end_datetime'].astype('datetime64[s]')
- 
-    # add years to dates
-    evlog_df['arrival_datetime'] = evlog_df['arrival_datetime'] + pd.offsets.DateOffset(years=year_offset)
-    evlog_df['start_datetime'] = evlog_df['start_datetime'] + pd.offsets.DateOffset(years=year_offset)
-    evlog_df['end_datetime'] = evlog_df['end_datetime'] + pd.offsets.DateOffset(years=year_offset)
 
-    # turn clock -6 hours back (so office hours are 06:00 - 18:00)
+    # In continuous time, t = 0 is Monday 00:00, and the closed hours of the presets in make_workweek
+    # are the first half of each day (00:00 to 12:00). The timestamps are placed 6 hours earlier, so the
+    # open hours are 06:00 to 18:00: t = 0 is a Sunday at 18:00, in the year 1970 + datetime_offset.
+    # The first Sunday of that year is used, so the log starts within the year and the weekdays are the
+    # same for every datetime_offset.
+    origin = timestamp_origin(datetime_offset)
 
-    evlog_df['arrival_datetime'] = evlog_df['arrival_datetime'] + pd.offsets.DateOffset(hours=-6)
-    evlog_df['start_datetime'] = evlog_df['start_datetime'] + pd.offsets.DateOffset(hours=-6)
-    evlog_df['end_datetime'] = evlog_df['end_datetime'] + pd.offsets.DateOffset(hours=-6)
+    evlog_df['arrival_datetime'] = continuous_to_datetime(evlog_df["z_t"], origin)
+    evlog_df['start_datetime'] = continuous_to_datetime(evlog_df["starttime"], origin)
+    evlog_df['end_datetime'] = continuous_to_datetime(evlog_df["endtime"], origin)
 
-    # turn clock -4 days back (so week starts at monday)
-    evlog_df['arrival_datetime'] = evlog_df['arrival_datetime'] + pd.offsets.DateOffset(days=-3)
-    evlog_df['start_datetime'] = evlog_df['start_datetime'] + pd.offsets.DateOffset(days=-3)
-    evlog_df['end_datetime'] = evlog_df['end_datetime'] + pd.offsets.DateOffset(days=-3)
-    
 
     # control: get day of week of beginning work
     evlog_df['start_day'] = evlog_df['start_datetime'].dt.day_name()
