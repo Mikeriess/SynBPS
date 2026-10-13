@@ -31,7 +31,7 @@ Once installed, you can:
 
 
 ## Documentation
-See the [official documentation here](https://synbps.readthedocs.io/en/latest/).
+See the [official documentation here](https://synbps.readthedocs.io/en/latest/). The [dataprep page](https://synbps.readthedocs.io/en/latest/dataprep.html) describes ```prefix_data```, which turns an event-log into a prefix-log with features and targets for a model.
 
 ## Settings
 All settings of ```generate_eventlog``` and of a design table, with the name used in the paper, the unit and an example value. Time is measured in days. The last column says which process type or entropy level uses the setting.

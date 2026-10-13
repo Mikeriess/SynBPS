@@ -19,24 +19,9 @@ def InitialFormatting(df, maxcases, dateformat, verbose=False):
         # find cases to drop due to length
         print("Cases before dropping len=1:",len(casestoload),"cases",len(df),"rows")
     
-    # Make function to apply to groups
-    def func(sub):
-        
-        out = None
-        
-        keepid = min(sub.id)
-        
-        if len(sub) > 1:
-            out = keepid
-        
-        return out
-    
     # Make list of cases above length 1
-    df_grp = df.groupby('id').apply(func)
-    
-    #Remove NaNs from the list
-    keepers = df_grp.values
-    keepers = [i for i in keepers if i] 
+    sizes = df.groupby('id').size()
+    keepers = sizes[sizes > 1].index.tolist()
 
     # Drop cases with only one event:
     df = df.loc[df["id"].isin(keepers)]
@@ -44,6 +29,9 @@ def InitialFormatting(df, maxcases, dateformat, verbose=False):
     if verbose == True:
         print("Cases after dropping len=1:",len(keepers),"cases",len(df),"rows")
   
+    #keep the caseid of the log, as the cases get new consecutive ids below
+    df = df.assign(log_caseid=df["id"])
+    
     #Sort the dataframe by time aftewards
     df['parsed_date'] = pd.to_datetime(df.time, format = dateformat, exact = True)
     
@@ -346,8 +334,8 @@ def GenerateTrainData(df,
         for event in eventlist:
             #print(event)
             
-            #Generate an eventID
-            event_number = event+1
+            #the number of the event in the case, 1 for the first event
+            event_number = event
             
             #get the event for later reference
             event_activity = subset["event"].loc[event]
@@ -614,7 +602,7 @@ def GenerateTrainData(df,
 
 
 
-def PadInputs(caseids, df, max_prefix_len=3, standardize=True, verbose=False):    
+def PadInputs(caseids, df, max_prefix_len=3, verbose=False):    
     import pandas as pd
     import numpy as np
     import time
@@ -695,6 +683,68 @@ def PadInputs(caseids, df, max_prefix_len=3, standardize=True, verbose=False):
 
 
 
+def ScaleFeatures(padded_df, train_caseids, columns, mode=None, verbose=False):
+    """
+    Scales the numeric features of the padded prefix table, with the parameters of the train set only.
+    The padding rows (event_number 0) stay 0, and the one-hot columns are not scaled.
+    
+    Parameters
+    ----------
+    padded_df : the padded prefix table from PadInputs, with the columns caseid, SEQID and event_number
+    train_caseids : the caseids (as in padded_df) of the train set, which the scaling parameters are computed from
+    columns : the columns to scale (the numeric features)
+    mode : None (no scaling), "standardize" ((x - mean) / std) or "normalize" ((x - min) / (max - min))
+    
+    Returns
+    -------
+    padded_df : the scaled table (a copy)
+    scaling : dict with the mode, the scaled columns and the parameters per column (mean and std, or min and max)
+    """
+    import pandas as pd
+    import numpy as np
+    
+    #error handling
+    if mode not in [None, "standardize", "normalize"]:
+        raise ValueError("scaling must be None, standardize or normalize, but is " + str(mode) + ". Change scaling.")
+    
+    padded_df = padded_df.copy()
+    
+    scaling = {"mode":mode, "columns":list(columns), "parameters":{}}
+    
+    if mode is None:
+        return padded_df, scaling
+    
+    #the rows of observed events (not padding), and those of them in the train set
+    observed = padded_df["event_number"].astype(float) > 0
+    train = observed & padded_df["caseid"].astype(str).isin([str(c) for c in train_caseids])
+    
+    for c in columns:
+        values = padded_df.loc[observed, c].astype(float)
+        train_values = padded_df.loc[train, c].astype(float)
+        
+        if mode == "standardize":
+            mean = float(train_values.mean())
+            std = float(train_values.std(ddof=0))
+            #a constant feature is centered only
+            scaled = (values - mean) / (std if std > 0 else 1.0)
+            scaling["parameters"][c] = {"mean":mean, "std":std}
+        
+        if mode == "normalize":
+            low = float(train_values.min())
+            high = float(train_values.max())
+            #a constant feature becomes 0
+            scaled = (values - low) / ((high - low) if high > low else 1.0)
+            scaling["parameters"][c] = {"min":low, "max":high}
+        
+        padded_df[c] = padded_df[c].astype(float)
+        padded_df.loc[observed, c] = scaled
+    
+    if verbose == True:
+        print("Scaled features (" + str(mode) + "):", list(columns))
+    
+    return padded_df, scaling
+
+
 def CaseData(df, verbose=False):
     if verbose == True:
         print("Generating case data")
@@ -707,6 +757,12 @@ def CaseData(df, verbose=False):
     
     distinct_events = df.groupby('id').event.nunique()
     CaseData["distinct_events"] = distinct_events
+    
+    #the caseid of the event-log, before the cases were renumbered
+    if "log_caseid" in df.columns:
+        CaseData["log_caseid"] = df.groupby('id').log_caseid.first()
+    else:
+        CaseData["log_caseid"] = CaseData["caseid"]
     
     mindate = df[df.groupby('id').time.transform('min') == df['time']]
     mindate = mindate.drop_duplicates(subset="id",keep="first")[["id","time"]]
@@ -777,15 +833,11 @@ def GetCaseStats(df, padded_df, CaseData, y_t, y_a, y, prefixwindow=0, dateforma
                 
         SEQID = i
 
-        #get case number and prefix number
+        #get case number and prefix number (the number of the last observed event)
         caseno = int(prefix["SEQID"].loc[0].split("_")[0])
         eventno = int(prefix["SEQID"].loc[0].split("_")[1])
         
-        if drop_last_ev == False:
-            #Add 1 to the index in the case all events are present
-            eventno = eventno - 1
-        
-        #Get event-specific data:
+        #Get event-specific data: the last observed event of the prefix
         case = df.loc[df["id"]==caseno]
         event = case.loc[case["event_number"]==eventno]
         
@@ -805,7 +857,7 @@ def GetCaseStats(df, padded_df, CaseData, y_t, y_a, y, prefixwindow=0, dateforma
         casestats["SEQID"] = SEQID
         
         #select what is interesting:
-        casestats = casestats[["SEQID","caseid","num_events",
+        casestats = casestats[["SEQID","caseid","log_caseid","num_events",
                                "prefix_number","prefixes","prefixwindow","prefix_date",
                                "distinct_events","caseduration_days"]]
 

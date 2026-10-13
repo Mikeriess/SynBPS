@@ -9,6 +9,7 @@
 
    eventlog
    example
+   dataprep
    parameters
 
 Welcome to SynBPS's documentation!
@@ -41,6 +42,7 @@ Then continue with one of the following pages:
 
 * :doc:`eventlog`: generate a single event-log from a dictionary of settings, and inspect it.
 * :doc:`example`: run a set of experiments from a design table, with your own data preparation, model and evaluation.
+* :doc:`dataprep`: turn an event-log into a prefix-log with features and targets, with ``prefix_data``.
 * :doc:`parameters`: all settings, with the names and units used in the paper.
 
 The example notebooks in the `examples folder on GitHub <https://github.com/Mikeriess/SynBPS/tree/main/examples>`_ contain the same code as these pages.
