@@ -130,7 +130,7 @@ With ``process_type = "memory"``, the next activity depends on the last ``proces
     HOMC["P0"]
 
     # probability vector over the activities and the absorption state END, given the last two activities
-    HOMC["Phi"][2][("b", "c")]
+    HOMC["Phi"][2][("a", "b")]
 
 ``HOMC["Phi"]`` holds one table per order 1 to k. ``Phi[i]`` maps every context of ``i`` activities to a probability vector over the activities plus the absorption state ``END``. The first events of a trace, which have fewer than k previous activities, use the table of their own length. In every context the probability of ``END`` is at least ``p_abs_min``, which guarantees that every trace ends.
 

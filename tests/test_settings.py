@@ -75,7 +75,7 @@ def test_workweek():
 
 @pytest.mark.parametrize("overrides", [
     {"statespace_size":1},
-    {"statespace_size":28},
+    {"statespace_size":30},
     {"med_ent_n_transitions":1},
     {"process_type":"memoryless", "med_ent_n_transitions":6},
     {"process_memory":0},
@@ -190,3 +190,28 @@ def test_timestamps_weekdays_for_every_datetime_offset(datetime_offset):
     #the log starts in the requested year, within its first week
     assert log.arrival_datetime.min().year == 1970 + datetime_offset
     assert (log.arrival_datetime.min() - origin) < pd.Timedelta(days=7)
+
+
+def test_activity_names():
+    """
+    The activities are the first letters of the alphabet, and the largest statespace uses all 29 letters
+    """
+    from SynBPS.simulation.simulation_helpers import make_D
+    from SynBPS.simulation.simulate_eventlog import generate_eventlog
+    
+    assert make_D(5) == ["a", "b", "c", "d", "e"]
+    assert make_D(26) == list("abcdefghijklmnopqrstuvwxyz")
+    assert make_D(29) == list("abcdefghijklmnopqrstuvwxyz") + ["æ", "ø", "å"]
+    assert len(set(make_D(29))) == 29
+    
+    with pytest.raises(ValueError):
+        make_D(30)
+    
+    #the activities of a log are the letters of its statespace
+    log = generate_eventlog(eventlog_settings(statespace_size=5, process_entropy="max_entropy", number_of_traces=50))
+    assert set(log.activity.unique()) <= set(make_D(5))
+    assert "a" in log.activity.unique()
+    
+    #the largest statespace works end to end
+    log = generate_eventlog(eventlog_settings(statespace_size=29, process_type="memoryless", process_entropy="max_entropy", number_of_traces=50))
+    assert set(log.activity.unique()) <= set(make_D(29))

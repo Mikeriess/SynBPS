@@ -1,11 +1,14 @@
 def make_D(statespace):
-    D=[]#list(range(1, statespace + 1))
-    D = ["S"+str(s) for s in D]
+    """
+    The statespace: the names of the activities, which are the first letters of the alphabet (a, b, c, ...)
+    """
+    alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","æ","ø","å"]
     
-    alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","w","x","y","z","æ","ø","å"]
+    #error handling
+    if statespace > len(alphabet):
+        raise ValueError("statespace_size must be at most " + str(len(alphabet)) + ", but is " + str(statespace) + ". Change statespace_size.")
     
-    for i in range(1, statespace + 1):
-        D.append(alphabet[i])
+    D = alphabet[:statespace]
     
     return D
 
