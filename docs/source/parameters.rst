@@ -67,13 +67,13 @@ All settings of ``generate_eventlog`` and of a design table, with the name used 
      - 10000
      - both
    * - ``inter_arrival_time``
-     - inter-arrival time (alg. 1)
-     - Mean time between the arrivals of two traces: the scale of the exponential distribution, not a rate
+     - 1/λ in alg. 1
+     - Mean time between the arrivals of two traces. The time between arrivals is exponential with this mean
      - days
      - 1.5
      - both
    * - ``process_stability_scale``
-     - process stability (eq. 19)
+     - 1/λ in eq. 19
      - Mean of the exponential noise added before each event. 0 means no noise
      - days
      - 0.1
@@ -97,8 +97,8 @@ All settings of ``generate_eventlog`` and of a design table, with the name used 
      - 0.041
      - both
    * - ``activity_duration_lambda_range``
-     - xi
-     - Upper limit of the uniform distribution (from 0.0001) the mean activity durations Lambda(d, t) are drawn from, one per activity and position in the trace. The duration of an event is exponential with that mean (the scale parameter of numpy, not a rate)
+     - ξ in section 4.5
+     - Upper limit of the uniform distribution (from 0.0001) the mean activity durations Λ(d, t) are drawn from, one per activity and position in the trace. The duration of an event is exponential with that mean, so Λ(d, t) is 1/λ in eq. 18
      - days
      - 1
      - both
@@ -138,6 +138,7 @@ Properties of the simulation
 
 * Traces are independent of each other: the resource offset is drawn per event (alg. 8), and there is no shared queue.
 * The mean duration ``Lambda(d, t)`` depends on the activity and on its position in the trace, so the same activity has a different mean duration at position 2 and position 5.
+* All parameters of exponential distributions are means, in days: ``inter_arrival_time``, ``process_stability_scale`` and the mean activity durations ``Lambda(d, t)`` drawn up to ``activity_duration_lambda_range``. This is the scale parameter of numpy. The paper writes the exponential distribution with a rate λ in eq. 7, eq. 18 and alg. 1, and the rate is 1 divided by the setting. The expected throughput time of a trace (eq. 25) is therefore the sum of the mean durations and offsets of its events.
 * The transition tables of the process with memory can be recovered from the seed with ``create_homc`` (``SynBPS.simulation.alg7_memory_process_generator``), independent of ``number_of_traces``. A prefix shorter than ``process_memory`` uses the table of its own length.
 * ``number_of_traces`` is not the number of events: the trace length depends on the entropy level, ``statespace_size``, ``med_ent_n_transitions``, ``p_abs_min`` and ``process_memory``.
 * ``run_experiments`` does not pass the settings to the training function. A training function which needs the data generating process must recover it from the seed.

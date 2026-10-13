@@ -24,10 +24,10 @@ def test_basic_simulation():
                     # number of possible transitions from each state - only used for medium entropy (between 2 and statespace size, plus 1 for the process with memory)
                     "med_ent_n_transitions":3,
                                     
-                    # lambda parameter of inter-arrival times
+                    # mean time between arrivals of two traces, in days (alg. 1)
                     "inter_arrival_time":1.5,
                     
-                    # lambda parameter of process noise
+                    # mean of the exponential noise added before each event, in days (eq. 19). 0 means no noise
                     "process_stability_scale":0.1,
                     
                     # probability of agent being available
@@ -39,7 +39,7 @@ def test_basic_simulation():
                     # waiting time in full days per request, when no agent is available. 0.041 days is about 1 hour
                     "resource_availability_m":0.041,
                     
-                    # variation between activity durations
+                    # upper limit of the mean activity durations Lambda(d, t), in days (eq. 18)
                     "activity_duration_lambda_range":1,
                     
                     # business hours definition: when can cases be processed? weekdays, all-week or none
@@ -89,10 +89,10 @@ def eventlog_settings(**overrides):
                     # number of possible transitions from each state - only used for medium entropy (between 2 and statespace size, plus 1 for the process with memory)
                     "med_ent_n_transitions":3,
                                     
-                    # lambda parameter of inter-arrival times
+                    # mean time between arrivals of two traces, in days (alg. 1)
                     "inter_arrival_time":1.5,
                     
-                    # lambda parameter of process noise
+                    # mean of the exponential noise added before each event, in days (eq. 19). 0 means no noise
                     "process_stability_scale":0.1,
                     
                     # probability of agent being available
@@ -104,7 +104,7 @@ def eventlog_settings(**overrides):
                     # waiting time in full days per request, when no agent is available. 0.041 days is about 1 hour
                     "resource_availability_m":0.041,
                     
-                    # variation between activity durations
+                    # upper limit of the mean activity durations Lambda(d, t), in days (eq. 18)
                     "activity_duration_lambda_range":1,
                     
                     # business hours definition: when can cases be processed? weekdays, all-week or none

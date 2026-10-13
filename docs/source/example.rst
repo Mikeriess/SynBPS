@@ -42,10 +42,10 @@ Every setting is given as a list of the levels to be simulated, and the design t
                     # number of possible transitions from each state - only used for medium entropy (between 2 and statespace size, plus 1 for the process with memory)
                     "med_ent_n_transitions":[2],
                                     
-                    # lambda parameter of inter-arrival times
+                    # mean time between arrivals of two traces, in days (alg. 1)
                     "inter_arrival_time":[1],
                     
-                    # lambda parameter of process noise
+                    # mean of the exponential noise added before each event, in days (eq. 19). 0 means no noise
                     "process_stability_scale":[0.5],
                     
                     # probability of agent being available
@@ -57,7 +57,7 @@ Every setting is given as a list of the levels to be simulated, and the design t
                     # waiting time in full days, when no agent is available
                     "resource_availability_m":[0.041],
                     
-                    # variation between activity durations
+                    # upper limit of the mean activity durations Lambda(d, t), in days (eq. 18)
                     "activity_duration_lambda_range":[1],
                     
                     # business hours definition: when can cases be processed? weekdays, all-week or none
