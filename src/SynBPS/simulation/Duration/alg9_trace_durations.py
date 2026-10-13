@@ -17,7 +17,7 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
                                       
                                       "resource_availability_p":0.5,    #probability of getting an agent
                                       "resource_availability_n":3,      #number of agents
-                                      "resource_availability_m":0.041,  #penalty time in days
+                                      "resource_availability_m":0.041,  #time per request in days
                                       "activity_duration_lambda_range":2,
                                       "Deterministic_offset_W": [[0, # CLOSED HOURS
                                                           1, 
@@ -158,7 +158,8 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
             h_t = Resource_offset(m = settings["resource_availability_m"], 
                                   p = settings["resource_availability_p"], 
                                   n = settings["resource_availability_n"],
-                                  rng=rng_resource)
+                                  rng=rng_resource,
+                                  mode=settings.get("resource_availability_mode", "all_requests"))
             H.append(h_t)
 
             """

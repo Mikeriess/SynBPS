@@ -35,7 +35,7 @@ def test_basic_simulation():
                     # number of agents in the process
                     "resource_availability_n":3,
 
-                    # waiting time in full days per request, when no agent is available. 0.041 days is about 1 hour
+                    # time per request until an agent is available, in days. 0.041 days is about 1 hour
                     "resource_availability_m":0.041,
                     
                     # upper limit of the mean activity durations Lambda(d, t), in days (eq. 18)
