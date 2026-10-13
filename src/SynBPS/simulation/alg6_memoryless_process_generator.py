@@ -10,8 +10,25 @@ def Process_without_memory(D = ["a","b","c","d","e"],
                         num_traces=2,
                         num_transitions=5, 
                         custom_distribution=None,
+                        max_len=10000,
                         seed_value=1337):
-    
+    """
+    Parameters
+    ----------
+    D : statespace (without absorption state)
+    mode : min_entropy, med_entropy, max_entropy or custom
+    num_traces : number of traces to generate
+    num_transitions : number of possible transitions from each state (med_entropy only)
+    custom_distribution : dict with the files p0, p and Lambda (custom only)
+    max_len : maximum number of events in a trace before an exception is raised
+    seed_value : seed for the random generator
+
+    Returns
+    -------
+    Theta : list of traces, each ending with the absorption state END
+    Phi : list with the initial probabilities P0 and the transition matrix P
+    """
+
     import numpy as np
     import pandas as pd
     
@@ -93,6 +110,10 @@ def Process_without_memory(D = ["a","b","c","d","e"],
         sigma.append(e_t)
         
         while e_t != D_abs[len(D_abs)-1]:
+            #Make sure the process cannot run forever (same guard as alg 7)
+            if len(sigma) >= max_len:
+                raise Exception("Trace did not reach the absorption state within max_len events. Increase max_len, or change the transition matrix if it is custom.")
+
             t = t+1
         
             #get conditional probability (e_t'th row of P)
