@@ -89,9 +89,10 @@ def check_settings(curr_settings):
         if p_abs_min is not None and not in_range(p_abs_min, 0, 1, high_included=False):
             problems.append("p_abs_min must be between 0 and 1 (1 excluded), but is " + str(p_abs_min) + ". Change p_abs_min.")
 
-        max_len = number("max_len")
-        if max_len is not None and not in_range(max_len, 2, float("inf")):
-            problems.append("max_len must be 2 or larger, but is " + str(max_len) + ". Change max_len.")
+    # the maximum trace length is used by both process types
+    max_len = number("max_len")
+    if max_len is not None and not in_range(max_len, 2, float("inf")):
+        problems.append("max_len must be 2 or larger, but is " + str(max_len) + ". Change max_len.")
 
     # time-related settings
     p = number("resource_availability_p")
@@ -191,7 +192,7 @@ def generate_eventlog(curr_settings, verbose=False):
             process_type (str): Type of Markov chain. Options: "memoryless", "memory".
             process_memory (int): Order of the Higher-Order Markov Chain (HOMC). Only used when process_type is "memory".
             p_abs_min (float): (Default: 0.05) Minimum probability of ending the trace from any state. Only used when process_type is "memory" and process_entropy is "med_entropy" or "max_entropy". A value of 0 removes the guarantee that every trace ends.
-            max_len (int): (Default: 10000) Maximum number of events in a trace, after which an exception is raised. Only used when process_type is "memory".
+            max_len (int): (Default: 10000) Maximum number of events in a trace, after which an exception is raised.
             statespace_size (int): Number of activity types (2 to 27). The activities are named with letters.
             med_ent_n_transitions (int): Number of possible transitions from each state. Only used when process_entropy is "med_entropy". Between 2 and statespace_size (statespace_size + 1 for the process with memory, where the absorption state can be one of them).
             inter_arrival_time (float): Mean time between the arrivals of two traces, in days (the scale of the exponential distribution, not a rate).
@@ -242,7 +243,7 @@ def generate_eventlog(curr_settings, verbose=False):
     # minimum probability of absorption from any state (default 0.05) - only used for process with memory
     p_abs_min = float(curr_settings["p_abs_min"]) if "p_abs_min" in curr_settings else 0.05
 
-    # maximum number of events in a trace (default 10000) - only used for process with memory
+    # maximum number of events in a trace (default 10000)
     max_len = int(curr_settings["max_len"]) if "max_len" in curr_settings else 10000
 
     time_settings = {"inter_arrival_time":float(curr_settings["inter_arrival_time"]), 
@@ -285,6 +286,7 @@ def generate_eventlog(curr_settings, verbose=False):
                                 num_traces=number_of_traces, 
                                 num_transitions=num_transitions, 
                                 custom_distribution=custom_dist,
+                                max_len=max_len,
                                 seed_value=seed_val)
         
         

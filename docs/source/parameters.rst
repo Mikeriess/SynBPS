@@ -59,7 +59,7 @@ All settings of ``generate_eventlog`` and of a design table, with the name used 
      - Maximum number of events in a trace, after which an exception is raised
      - count
      - 10000
-     - memory
+     - both
    * - ``inter_arrival_time``
      - inter-arrival time (alg. 1)
      - Mean time between the arrivals of two traces: the scale of the exponential distribution, not a rate

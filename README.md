@@ -45,7 +45,7 @@ All settings of ```generate_eventlog``` and of a design table, with the name use
 | `statespace_size` | d_size | Number of activity types. The activities are named with letters | count, 2 to 27 | 5 | both |
 | `med_ent_n_transitions` | n_transitions | Number of possible transitions from each state (context). Between 2 and `statespace_size`, plus 1 for the process with memory, where the absorption state can be one of them | count | 3 | med_entropy |
 | `p_abs_min` | not in the paper (added in 1.1.8) | Minimum probability of ending the trace from any context, which guarantees that every trace ends. 0 removes the guarantee | probability, 0 to 1 (1 excluded) | 0.05 | memory, med_entropy and max_entropy |
-| `max_len` | not in the paper (added in 1.1.8) | Maximum number of events in a trace, after which an exception is raised | count | 10000 | memory |
+| `max_len` | not in the paper (added in 1.1.8) | Maximum number of events in a trace, after which an exception is raised | count | 10000 | both |
 | `inter_arrival_time` | inter-arrival time (alg. 1) | Mean time between the arrivals of two traces: the scale of the exponential distribution, not a rate | days | 1.5 | both |
 | `process_stability_scale` | process stability (eq. 19) | Mean of the exponential noise added before each event. 0 means no noise | days | 0.1 | both |
 | `resource_availability_p` | p (alg. 8) | Probability that an agent is available at a request | probability, above 0 and at most 1 | 0.5 | both |
