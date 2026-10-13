@@ -110,7 +110,7 @@ All settings of ``generate_eventlog`` and of a design table, with the name used 
      - both
    * - ``datetime_offset``
      - not in the paper
-     - Years added to 1970 for the timestamps
+     - Years added to 1970 for the timestamps. The simulation starts (t = 0) on the first Sunday of that year at 18:00, so the business hours fall on Monday to Friday for every offset
      - years
      - 54
      - both
