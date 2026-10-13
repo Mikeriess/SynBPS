@@ -9,7 +9,9 @@ import pandas as pd
 
 def Generate_lambdas(D,t, lambd_range, seed_value=1337):
     """
-    Generate lambda values for capital lambda matrix
+    Generate the matrix Lambda of mean activity durations, in days, drawn from Uniform(0.0001, lambd_range).
+    Each entry is the mean (numpy scale) of the exponential duration of one activity at one position in the trace,
+    so it is 1/lambda in eq. 18 of the paper.
     
     Matrix is:
         T x D

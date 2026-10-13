@@ -11,9 +11,9 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
                             
                                    D = ["a","b","c","d","e"],           #state space of the process
                                    
-                            settings={"inter_arrival_time":1,           #lambda parameter of inter-arrival times
+                            settings={"inter_arrival_time":1,           #mean time between arrivals of two traces, in days (alg. 1)
                                          
-                                      "process_stability_scale":0.1,    #lambda parameter of process noise
+                                      "process_stability_scale":0.1,    #mean of the exponential noise added before each event, in days (eq. 19). 0 means no noise
                                       
                                       "resource_availability_p":0.5,    #probability of getting an agent
                                       "resource_availability_n":3,      #number of agents

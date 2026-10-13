@@ -215,6 +215,8 @@ def generate_eventlog(curr_settings, verbose=False):
             seed_value (int): Seed of all random streams (0 to 2**32 - 1). The same settings and seed give the same event-log.
             custom_distributions(dict): (Default: None) Dictionary with filenames for custom initial probabilities, transition matrix and duration distribution. Example usage: {"p0":"data/p0.csv", "p":"data/p.csv","Lambda":"data/lambda.csv"}
 
+        All exponential parameters (inter_arrival_time, process_stability_scale, Lambda(d, t)) are means in days, the scale of numpy.
+
     Returns:
         Pandas dataframe with the simulated event-log
 
