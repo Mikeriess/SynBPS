@@ -79,6 +79,13 @@ def check_settings(curr_settings):
         if not in_range(num_transitions, 2, upper):
             problems.append("med_ent_n_transitions must be between 2 and " + str(int(upper)) + " for this statespace_size and process_type, but is " + str(num_transitions) + ". Change med_ent_n_transitions.")
 
+    # kappa: only used by the memoryless process with medium entropy. the sum of the absorption probabilities
+    # is at least 1 (the absorption state), and the search in alg. 5 becomes very slow above 1 + statespace_size/2
+    kappa = number("med_ent_kappa")
+    if process_entropy == "med_entropy" and process_type == "memoryless" and kappa is not None and statespace_size is not None:
+        if not in_range(kappa, 0, 1 + statespace_size/2):
+            problems.append("med_ent_kappa must be between 0 and 1 + statespace_size/2 (" + str(1 + statespace_size/2) + ") for this statespace_size, but is " + str(kappa) + ". Change med_ent_kappa.")
+
     # settings which are only used by the process with memory
     if process_type == "memory":
         process_memory = number("process_memory")
@@ -194,7 +201,8 @@ def generate_eventlog(curr_settings, verbose=False):
             p_abs_min (float): (Default: 0.05) Minimum probability of ending the trace from any state. Only used when process_type is "memory" and process_entropy is "med_entropy" or "max_entropy". A value of 0 removes the guarantee that every trace ends.
             max_len (int): (Default: 10000) Maximum number of events in a trace, after which an exception is raised.
             statespace_size (int): Number of activity types (2 to 27). The activities are named with letters.
-            med_ent_n_transitions (int): Number of possible transitions from each state. Only used when process_entropy is "med_entropy". Between 2 and statespace_size (statespace_size + 1 for the process with memory, where the absorption state can be one of them).
+            med_ent_n_transitions (int): Number of possible transitions from each state, drawn from the activities and the absorption state. Only used when process_entropy is "med_entropy". Between 2 and statespace_size (statespace_size + 1 for the process with memory).
+            med_ent_kappa (float): (Default: 2) Minimum of the total probability of ending the trace, summed over all states, where the absorption state contributes 1 (kappa in alg. 5). States get random transitions to the absorption state until the sum is reached, so a higher value gives shorter traces. Between 0 and 1 + statespace_size/2. Only used when process_type is "memoryless" and process_entropy is "med_entropy".
             inter_arrival_time (float): Mean time between the arrivals of two traces, in days (the scale of the exponential distribution, not a rate).
             process_stability_scale (float): Mean of the exponential noise added before each event, in days. 0 means no noise.
             resource_availability_p (float): Probability that an agent is available at a request (above 0, at most 1).
@@ -243,6 +251,9 @@ def generate_eventlog(curr_settings, verbose=False):
     # minimum probability of absorption from any state (default 0.05) - only used for process with memory
     p_abs_min = float(curr_settings["p_abs_min"]) if "p_abs_min" in curr_settings else 0.05
 
+    # minimum total probability of absorption, kappa in alg. 5 (default 2) - only used for the memoryless process with medium entropy
+    kappa = float(curr_settings["med_ent_kappa"]) if "med_ent_kappa" in curr_settings else 2.0
+
     # maximum number of events in a trace (default 10000)
     max_len = int(curr_settings["max_len"]) if "max_len" in curr_settings else 10000
 
@@ -285,6 +296,7 @@ def generate_eventlog(curr_settings, verbose=False):
                                 mode = process_entropy, 
                                 num_traces=number_of_traces, 
                                 num_transitions=num_transitions, 
+                                kappa=kappa,
                                 custom_distribution=custom_dist,
                                 max_len=max_len,
                                 seed_value=seed_val)

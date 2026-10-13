@@ -9,6 +9,7 @@ def Process_without_memory(D = ["a","b","c","d","e"],
                         mode = ["min_entropy","max_entropy","med_entropy", "custom"][2], 
                         num_traces=2,
                         num_transitions=5, 
+                        kappa=2,
                         custom_distribution=None,
                         max_len=10000,
                         seed_value=1337):
@@ -19,6 +20,7 @@ def Process_without_memory(D = ["a","b","c","d","e"],
     mode : min_entropy, med_entropy, max_entropy or custom
     num_traces : number of traces to generate
     num_transitions : number of possible transitions from each state (med_entropy only)
+    kappa : minimum total probability of absorption over all states (med_entropy only), see alg 5
     custom_distribution : dict with the files p0, p and Lambda (custom only)
     max_len : maximum number of events in a trace before an exception is raised
     seed_value : seed for the random generator
@@ -70,7 +72,7 @@ def Process_without_memory(D = ["a","b","c","d","e"],
     if mode =="med_entropy":
         #initial probabilities
         P0 = GenerateInitialProb(D, p0_type="med_entropy")
-        P = Generate_transition_matrix_med_ent(D, n_tranitions=num_transitions)
+        P = Generate_transition_matrix_med_ent(D, n_tranitions=num_transitions, kappa=kappa)
         P.index = D_abs
 
     if mode =="custom":

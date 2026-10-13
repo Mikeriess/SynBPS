@@ -91,3 +91,61 @@ def test_max_len_memoryless():
     log = generate_eventlog(eventlog_settings(process_type="memoryless", process_entropy="max_entropy", 
                                               max_len=10000, number_of_traces=100))
     assert log.caseid.nunique() == 100
+
+
+def test_kappa_default_and_effect():
+    """
+    med_ent_kappa (kappa in alg. 5) defaults to 2, is a floor for the sum of the absorption probabilities,
+    and a higher value gives shorter traces
+    """
+    import numpy as np
+    import pandas as pd
+    from SynBPS.simulation.simulation_helpers import make_D
+    from SynBPS.simulation.Memoryless_process.alg5_transition_matrix_med_entropy import Generate_transition_matrix_med_ent
+    from SynBPS.simulation.simulate_eventlog import generate_eventlog
+    
+    D = make_D(5)
+    
+    #the sum of the last column (absorption, incl. the absorption state itself) is at least kappa
+    for kappa in [1, 2, 3, 3.5]:
+        for seed in range(50):
+            np.random.seed(seed)
+            P = Generate_transition_matrix_med_ent(D, n_tranitions=3, kappa=kappa).values
+            assert P[:, -1].sum() >= kappa - 1e-9
+            assert np.allclose(P.sum(axis=1), 1)
+    
+    #without the setting, the log is the one of kappa = 2
+    settings = eventlog_settings(process_type="memoryless", process_entropy="med_entropy", number_of_traces=100)
+    log_default = generate_eventlog(settings)
+    log_2 = generate_eventlog(dict(settings, med_ent_kappa=2))
+    pd.testing.assert_frame_equal(log_default, log_2)
+    
+    #values up to 1 add no transitions, as the absorption state contributes 1 by itself
+    log_0 = generate_eventlog(dict(settings, med_ent_kappa=0))
+    log_1 = generate_eventlog(dict(settings, med_ent_kappa=1))
+    pd.testing.assert_frame_equal(log_0, log_1)
+    
+    #more absorption, shorter traces (on average over a few seeds)
+    def mean_trace_length(kappa):
+        lengths = []
+        for seed in range(5):
+            log = generate_eventlog(dict(settings, med_ent_kappa=kappa, seed_value=seed))
+            lengths.append(len(log)/log.caseid.nunique())
+        return np.mean(lengths)
+    
+    assert mean_trace_length(1) > mean_trace_length(2) > mean_trace_length(3.5)
+    
+    #the setting is ignored by the other processes, also when it is out of range for med_entropy
+    generate_eventlog(eventlog_settings(process_type="memory", number_of_traces=10, med_ent_kappa=100))
+    generate_eventlog(eventlog_settings(process_type="memoryless", process_entropy="max_entropy", number_of_traces=10, med_ent_kappa=100))
+
+
+@pytest.mark.parametrize("kappa", [-1, 4, 100, "two"])
+def test_kappa_invalid(kappa):
+    """
+    kappa must be between 0 and 1 + statespace_size/2 (3.5 for 5 activities), as the search becomes very slow above it
+    """
+    from SynBPS.simulation.simulate_eventlog import generate_eventlog
+    
+    with pytest.raises(ValueError, match="med_ent_kappa"):
+        generate_eventlog(eventlog_settings(process_type="memoryless", process_entropy="med_entropy", statespace_size=5, med_ent_kappa=kappa))
