@@ -67,10 +67,10 @@ def check_settings(curr_settings):
     if number_of_traces is not None and not in_range(number_of_traces, 1, float("inf")):
         problems.append("number_of_traces must be 1 or larger, but is " + str(number_of_traces) + ". Change number_of_traces.")
 
-    # the alphabet in make_D has room for 27 activities
+    # the alphabet in make_D has room for 29 activities
     statespace_size = number("statespace_size")
-    if statespace_size is not None and not in_range(statespace_size, 2, 27):
-        problems.append("statespace_size must be between 2 and 27, but is " + str(statespace_size) + ". Change statespace_size.")
+    if statespace_size is not None and not in_range(statespace_size, 2, 29):
+        problems.append("statespace_size must be between 2 and 29, but is " + str(statespace_size) + ". Change statespace_size.")
 
     # number of transitions: only used for medium entropy. the process with memory allows the absorption state as one of them
     num_transitions = number("med_ent_n_transitions")
@@ -203,7 +203,7 @@ def generate_eventlog(curr_settings, verbose=False):
             process_memory (int): Order of the Higher-Order Markov Chain (HOMC). Only used when process_type is "memory".
             p_abs_min (float): (Default: 0.05) Minimum probability of ending the trace from any state. Only used when process_type is "memory" and process_entropy is "med_entropy" or "max_entropy". A value of 0 removes the guarantee that every trace ends.
             max_len (int): (Default: 10000) Maximum number of events in a trace, after which an exception is raised.
-            statespace_size (int): Number of activity types (2 to 27). The activities are named with letters.
+            statespace_size (int): Number of activity types (2 to 29). The activities are named with the letters a, b, c, ...
             med_ent_n_transitions (int): Number of possible transitions from each state, drawn from the activities and the absorption state. Only used when process_entropy is "med_entropy". Between 2 and statespace_size (statespace_size + 1 for the process with memory).
             med_ent_kappa (float): (Default: 2) Minimum of the total probability of ending the trace, summed over all states, where the absorption state contributes 1 (kappa in alg. 5). States get random transitions to the absorption state until the sum is reached, so a higher value gives shorter traces. Between 0 and 1 + statespace_size/2. Only used when process_type is "memoryless" and process_entropy is "med_entropy".
             inter_arrival_time (float): Mean time between the arrivals of two traces, in days (the scale of the exponential distribution, not a rate).

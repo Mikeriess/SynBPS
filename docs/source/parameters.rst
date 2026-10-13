@@ -38,8 +38,8 @@ All settings of ``generate_eventlog`` and of a design table, with the name used 
      - memory
    * - ``statespace_size``
      - d_size
-     - Number of activity types. The activities are named with letters
-     - count, 2 to 27
+     - Number of activity types. The activities are named with the letters a, b, c, ... (up to version 1.1.9: b, c, d, ...)
+     - count, 2 to 29
      - 5
      - both
    * - ``med_ent_n_transitions``
