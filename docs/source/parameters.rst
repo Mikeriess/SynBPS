@@ -44,10 +44,16 @@ All settings of ``generate_eventlog`` and of a design table, with the name used 
      - both
    * - ``med_ent_n_transitions``
      - n_transitions
-     - Number of possible transitions from each state (context). Between 2 and ``statespace_size``, plus 1 for the process with memory, where the absorption state can be one of them
+     - Number of possible transitions from each state (context), drawn from the activities and the absorption state. Between 2 and ``statespace_size``, plus 1 for the process with memory
      - count
      - 3
      - med_entropy
+   * - ``med_ent_kappa``
+     - kappa (alg. 5)
+     - Minimum of the total probability of ending the trace, summed over all states, where the absorption state contributes 1. States get random transitions to the absorption state until the sum is reached, so a higher value gives shorter traces. Values up to 1 add nothing, and the search becomes very slow above the upper limit. That every trace ends is guaranteed separately, by a check that the absorption state can be reached from every state
+     - probability mass, 0 to 1 + ``statespace_size``/2
+     - 2
+     - memoryless, med_entropy
    * - ``p_abs_min``
      - not in the paper (added in 1.1.8)
      - Minimum probability of ending the trace from any context, which guarantees that every trace ends. 0 removes the guarantee

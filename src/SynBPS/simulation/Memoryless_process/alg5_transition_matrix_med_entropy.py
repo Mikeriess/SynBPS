@@ -42,31 +42,31 @@ def States_not_reaching_absorption(P):
 
 def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
                                        n_tranitions=3,
-                                       limit_trials=1000,
-                                       kappa = 2,seed_value=1337):
+                                       kappa = 2,
+                                       seed_value=1337):
     """
+    Generation of transition matrix: Medium entropy (alg. 5)
+
     Parameters
     ----------
-    D : TYPE, optional
-        A list of states, such as D=["a","b","c","d","e"].
+    D : list of states, such as D=["a","b","c","d","e"], without the absorption state
     
-    e_steps : TYPE, optional
-        Max expected steps to absorption
-        
-    n_tranitions : TYPE, optional
-       Total number of transitions allowed from each state
+    n_tranitions : number of possible transitions from each state, drawn from D and the absorption state
     
-    limit_trials : TYPE, optional
-        Max number of trials for random search
+    kappa : minimum of the total probability of a transition to the absorption state, summed over all states
+        (the absorption state itself contributes 1). Random transitions to the absorption state are added
+        until the sum is reached. At most 1 + len(D)/2, as the loop overwrites the absorption probability of
+        a random state instead of adding to it, and becomes very slow when the states need more than half of
+        their probability mass for absorption on average
+    
+    seed_value : not used, the global numpy stream is seeded by the caller
 
     Returns
     -------
-    P : TYPE
-        DESCRIPTION.
+    P : transition matrix as a pandas dataframe, with the absorption state END as the last row and column
 
     """
     import numpy as np
-    #np.random.seed(seed_value) 
 
     #error handling
     if len(D) < n_tranitions:
@@ -75,38 +75,9 @@ def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
     if n_tranitions < 2:
         raise ValueError("med_ent_n_transitions must be 2 or larger, as a single transition leads to an endless search. Change med_ent_n_transitions.")
     
+    if kappa > 1 + len(D)/2:
+        raise ValueError("med_ent_kappa must be at most 1 + statespace_size/2, as the search for the absorption probabilities becomes very slow above it. Change med_ent_kappa.")
     
-    ####################################
-    
-    def Get_steps(P,D):
-        import numpy as np
-        
-        #generate the transient matrix
-        Q = P[:len(D)-1,:len(D)-1]
-        
-        #get the determinant of P
-        P_det = np.linalg.det(P)
-        print("det:",P_det)
-        
-        #if P is invertible, calculate number of steps to absorption
-        #if 0.15 < P_det < 1:
-        if P_det > 0.0001 and P_det < 1:
-            print("pass:",str(P_det))
-            
-        #if np.isfinite(np.linalg.cond(Q)) and P_det > 0:
-            #print(Q)
-            I = np.identity(len(Q))
-            M = np.linalg.inv((I-Q))
-            
-            M = np.dot(M, np.ones(len(Q)))
-            
-            steps = np.max(M)
-            
-        else:
-            steps = 9999
-        
-        return steps
-
     ####################################
     
     import numpy as np
@@ -151,9 +122,9 @@ def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
     #convert P to a D x D matrix
     P = np.reshape(P,(len(D_orig),len(D_orig)))
     
-    #Test2: Make sure _someting_ leads to the absorption state
+    #Test2: Make sure _something_ leads to the absorption state
     
-    # last column should sum to more than 1
+    # the last column (absorption probabilities) should sum to at least kappa. The absorption state contributes 1
     #rows, columns
     colsum = np.sum(P[:,len(D_orig)-1]) 
     
