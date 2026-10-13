@@ -79,7 +79,7 @@ def Generate_transition_matrix_min_ent(D = ["a","b","c","d","e"], P0=[], seed_va
     
         
     #generate a dataframe with labels for the "to" states
-    P_df = pd.DataFrame(np.reshape(P,newshape=(len(D_abs),len(D_abs))))
+    P_df = pd.DataFrame(np.reshape(P, (len(D_abs),len(D_abs))))
     P_df.columns = D_abs
     
     #print("Min_Entropy: P0")

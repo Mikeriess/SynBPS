@@ -43,7 +43,7 @@ def Generate_transition_matrix_max_ent(D = ["a","b","c"], seed_value=1337):
         P = np.hstack((P,R))
         
     #generate a dataframe with labels for the "to" states
-    P_df = pd.DataFrame(np.reshape(P, newshape=(len(D_orig),len(D_orig))))
+    P_df = pd.DataFrame(np.reshape(P, (len(D_orig),len(D_orig))))
     P_df.columns = D_orig
     return P_df
 
