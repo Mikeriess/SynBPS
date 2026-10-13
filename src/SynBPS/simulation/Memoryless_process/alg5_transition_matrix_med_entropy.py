@@ -168,7 +168,7 @@ def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
 
 
     #generate a dataframe with labels for the "to" states
-    P_df = pd.DataFrame(np.reshape(P, newshape=(len(D_orig),len(D_orig))))
+    P_df = pd.DataFrame(np.reshape(P, (len(D_orig),len(D_orig))))
     P_df.columns = D_orig
     #print(P_df)
     return P_df
