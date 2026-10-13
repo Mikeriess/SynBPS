@@ -40,15 +40,18 @@ def Generate_lambdas(D,t, lambd_range, seed_value=1337):
 """
 
 
-def Resource_offset(m = 0.15, p = 0.5, n = 3, seed_value=1337, rng=None):
+def Resource_offset(m = 0.15, p = 0.5, n = 3, seed_value=1337, rng=None, mode="all_requests"):
     """
     Parameters
     ----------
-    m : time between requests
+    m : time per request
     p : probability of getting an idle agent
     n : number of agents
     seed_value : not used, the stream is given by rng
     rng : numpy random generator (the global numpy stream is used when None)
+    mode : which requests take the time m.
+        all_requests: every request, also the successful one, so h is at least m.
+        failed_requests: only the requests at which no agent was available, so h is 0 when an agent is available at the first request (alg. 8)
 
     Returns
     -------
@@ -56,6 +59,10 @@ def Resource_offset(m = 0.15, p = 0.5, n = 3, seed_value=1337, rng=None):
 
     """
     import numpy as np
+    
+    #error handling
+    if mode not in ["all_requests", "failed_requests"]:
+        raise ValueError("resource_availability_mode must be all_requests or failed_requests, but is " + str(mode) + ". Change resource_availability_mode.")
     
     # probability that at least one of the n agents is available at a request
     q = 1 - (1 - p)**n
@@ -70,6 +77,10 @@ def Resource_offset(m = 0.15, p = 0.5, n = 3, seed_value=1337, rng=None):
         k = np.random.geometric(q)
     if rng is not None:
         k = rng.geometric(q)
+    
+    # only the failed requests take time: the successful request is not counted
+    if mode == "failed_requests":
+        k = k - 1
     
     # Add penalty for every trial until success (of getting an agent)
     h = m * k

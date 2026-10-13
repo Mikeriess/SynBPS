@@ -92,9 +92,15 @@ All settings of ``generate_eventlog`` and of a design table, with the name used 
      - both
    * - ``resource_availability_m``
      - m (alg. 8)
-     - Waiting time per request until an agent is available. The number of requests is geometric with success probability 1 - (1 - p)^n. Note that 0.041 days is about one hour, and 15 minutes is 0.0104 days
+     - Time per request until an agent is available. The number of requests is geometric with success probability 1 - (1 - p)^n. Which requests take the time is set by ``resource_availability_mode``. Note that 0.041 days is about one hour, and 15 minutes is 0.0104 days
      - days
      - 0.041
+     - both
+   * - ``resource_availability_mode``
+     - alg. 8 with ``failed_requests``
+     - ``all_requests``: every request takes ``resource_availability_m``, also the successful one, so the offset is at least m. ``failed_requests``: only the requests at which no agent was available take the time, so the offset is 0 when an agent is available at the first request. The two modes use the same random draws, so a log differs only in ``h_t``
+     - -
+     - ``"all_requests"``
      - both
    * - ``activity_duration_lambda_range``
      - ξ in section 4.5

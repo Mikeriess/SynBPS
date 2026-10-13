@@ -114,6 +114,9 @@ def check_settings(curr_settings):
     if m is not None and not in_range(m, 0, float("inf")):
         problems.append("resource_availability_m must be 0 or larger, but is " + str(m) + ". Change resource_availability_m.")
 
+    if "resource_availability_mode" in curr_settings and curr_settings["resource_availability_mode"] not in ["all_requests", "failed_requests"]:
+        problems.append("resource_availability_mode must be all_requests or failed_requests, but is " + str(curr_settings["resource_availability_mode"]) + ". Change resource_availability_mode.")
+
     stability = number("process_stability_scale")
     if stability is not None and not in_range(stability, 0, float("inf")):
         problems.append("process_stability_scale must be 0 or larger, but is " + str(stability) + ". Change process_stability_scale.")
@@ -207,7 +210,8 @@ def generate_eventlog(curr_settings, verbose=False):
             process_stability_scale (float): Mean of the exponential noise added before each event, in days. 0 means no noise.
             resource_availability_p (float): Probability that an agent is available at a request (above 0, at most 1).
             resource_availability_n (int): Number of agents in the process.
-            resource_availability_m (float): Waiting time per request until an agent is available, in days. 0.041 days is about one hour.
+            resource_availability_m (float): Time per request until an agent is available, in days. 0.041 days is about one hour.
+            resource_availability_mode (str): (Default: "all_requests") Which requests take the time resource_availability_m. "all_requests": every request, also the successful one, so the offset is at least m. "failed_requests": only the requests at which no agent was available, so the offset is 0 when an agent is available at the first request (alg. 8).
             activity_duration_lambda_range (float): Upper limit of the uniform distribution (from 0.0001) the mean activity durations Lambda(d, t) are drawn from, in days. The duration of an event is exponential with that mean.
             Deterministic_offset_W (str): Business hours definition. Options: "weekdays", "all-week" or "none" (no closed hours).
             Deterministic_offset_u (int): Length of a week in the time unit used (7 for days). The business hours of Deterministic_offset_W assume 7.
@@ -264,6 +268,7 @@ def generate_eventlog(curr_settings, verbose=False):
                     "resource_availability_p":float(curr_settings["resource_availability_p"]),
                     "resource_availability_n":int(curr_settings["resource_availability_n"]),
                     "resource_availability_m":float(curr_settings["resource_availability_m"]), 
+                    "resource_availability_mode":curr_settings["resource_availability_mode"] if "resource_availability_mode" in curr_settings else "all_requests",
                     "activity_duration_lambda_range":float(curr_settings["activity_duration_lambda_range"]),
                     "Deterministic_offset_W":make_workweek(curr_settings["Deterministic_offset_W"]),
                     "Deterministic_offset_u":int(curr_settings["Deterministic_offset_u"])}

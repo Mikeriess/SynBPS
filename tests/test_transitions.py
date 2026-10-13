@@ -149,3 +149,53 @@ def test_kappa_invalid(kappa):
     
     with pytest.raises(ValueError, match="med_ent_kappa"):
         generate_eventlog(eventlog_settings(process_type="memoryless", process_entropy="med_entropy", statespace_size=5, med_ent_kappa=kappa))
+
+
+def test_resource_availability_mode():
+    """
+    resource_availability_mode: all_requests (default) counts every request, failed_requests only the failed ones.
+    Both modes use the same random draws, so the logs differ by exactly m in h_t
+    """
+    import numpy as np
+    import pandas as pd
+    from SynBPS.simulation.simulate_eventlog import generate_eventlog
+    from SynBPS.simulation.simulation_helpers import make_rng
+    from SynBPS.simulation.Duration.duration_helpers import Resource_offset
+    
+    m, p, n = 0.041, 0.5, 3
+    settings = eventlog_settings(process_type="memoryless", number_of_traces=300, resource_availability_m=m, resource_availability_p=p, resource_availability_n=n)
+    
+    #without the setting, the log is the one of all_requests
+    log_default = generate_eventlog(settings)
+    log_all = generate_eventlog(dict(settings, resource_availability_mode="all_requests"))
+    pd.testing.assert_frame_equal(log_default, log_all)
+    
+    #failed_requests: h_t is exactly m lower for every event, everything else which does not depend on h_t is the same
+    log_failed = generate_eventlog(dict(settings, resource_availability_mode="failed_requests"))
+    assert np.allclose(log_all.h_t - log_failed.h_t, m)
+    for column in ["activity", "z_t", "b_t", "v_t"]:
+        assert log_all[column].tolist() == log_failed[column].tolist()
+    
+    #an agent is available at the first request with probability q = 1 - (1 - p)^n: then the offset is 0
+    q = 1 - (1 - p)**n
+    assert (log_all.h_t >= m).all()
+    assert abs((log_failed.h_t == 0).mean() - q) < 0.05
+    
+    #means: m/q and m(1 - q)/q
+    rng = make_rng(3, "resource")
+    draws_all = np.array([Resource_offset(m=m, p=p, n=n, rng=rng, mode="all_requests") for i in range(20000)])
+    rng = make_rng(3, "resource")
+    draws_failed = np.array([Resource_offset(m=m, p=p, n=n, rng=rng, mode="failed_requests") for i in range(20000)])
+    assert abs(draws_all.mean() - m/q) < 0.02*m/q
+    assert abs(draws_failed.mean() - m*(1-q)/q) < 0.05*m/q
+    
+    #an agent which is always available: no offset in failed_requests, one request in all_requests
+    log_p1 = generate_eventlog(dict(settings, resource_availability_p=1, resource_availability_mode="failed_requests"))
+    assert (log_p1.h_t == 0).all()
+    assert Resource_offset(m=m, p=1, n=n, rng=make_rng(1, "resource"), mode="all_requests") == m
+    
+    #invalid value
+    with pytest.raises(ValueError, match="resource_availability_mode"):
+        generate_eventlog(dict(settings, resource_availability_mode="none"))
+    with pytest.raises(ValueError, match="resource_availability_mode"):
+        Resource_offset(m=m, p=p, n=n, rng=make_rng(1, "resource"), mode="none")
