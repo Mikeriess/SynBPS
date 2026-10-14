@@ -9,11 +9,15 @@ import numpy as np
 
 
 def InitialFormatting(df, maxcases, dateformat, verbose=False):
+    """
+    Keeps the first maxcases cases, drops the cases with a single event, keeps the caseid of the log in log_caseid,
+    renumbers the cases 1, 2, 3, ... and sorts the events by case and time
+    """
     import pandas as pd
     
     #Work on a subset:
     casestoload = df["id"].unique().tolist()[0:maxcases]
-    df = df.loc[df["id"].isin(casestoload)]
+    df = df.loc[df["id"].isin(casestoload)].copy()
     
     if verbose == True:
         # find cases to drop due to length
@@ -24,13 +28,13 @@ def InitialFormatting(df, maxcases, dateformat, verbose=False):
     keepers = sizes[sizes > 1].index.tolist()
 
     # Drop cases with only one event:
-    df = df.loc[df["id"].isin(keepers)]
+    df = df.loc[df["id"].isin(keepers)].copy()
     
     if verbose == True:
         print("Cases after dropping len=1:",len(keepers),"cases",len(df),"rows")
-  
+    
     #keep the caseid of the log, as the cases get new consecutive ids below
-    df = df.assign(log_caseid=df["id"])
+    df["log_caseid"] = df["id"]
     
     #Sort the dataframe by time aftewards
     df['parsed_date'] = pd.to_datetime(df.time, format = dateformat, exact = True)
@@ -39,13 +43,11 @@ def InitialFormatting(df, maxcases, dateformat, verbose=False):
     if verbose == True:
         print("Sorting by id, date (chronological order)")
     #generate new ID column:
-    df = df.assign(id=(df['id']).astype('category').cat.codes)
-    
-    df["id"] = df.id.astype('int32')
+    df["id"] = df["id"].astype('category').cat.codes.astype('int32')
     
     # Ensure ID starts at 1
     if min(df.id) == 0:
-        df.id = df.id +1
+        df["id"] = df.id + 1
     
     # Sort the DF baed on caseid, and the date of the event
     df = df.sort_values(['id',"parsed_date"], ascending=[True, True]) 
@@ -204,243 +206,79 @@ def GenerateTrainData(df,
                       max_prefix_length = 2,
                       window_position="last_k",
                       verbose=False):
-    #Make copy of df
-    data = df
-    
-    #Subset only relevant variables
-    df = df[["id","time","event"]+category_cols+numeric_cols]
-    
-    
-    import time as tm
-    from datetime import datetime
     import pandas as pd
-    import time
-        
-    # Make new case ids: ##############################
-    cases = data["id"].unique().tolist()
-    newcaseids = list(range(0,len(cases)))
+    import numpy as np
     
-    dictdf = pd.DataFrame([cases,newcaseids]).T
-    dictdf.columns =["id","newid"]
+    #Make copy of df, so the table of the caller is not changed
+    data = df.copy()
     
-    newdata = pd.merge(left=data,right=dictdf,on="id")
-    newdata.rename(columns={'id':'dropme',
-                            'newid':'id'}, 
-                            inplace=False).drop("dropme",axis=1)
-    
-    # List all cases by their new id:
+    # List all cases, in the order of the table (sorted by case and time)
     cases = data["id"].unique().tolist()
     
-    # Make new event ids: ##############################
-    evids = []
-    for i in cases:
-        subset = data.loc[data["id"] == i]
-        evids = evids + list(range(0,len(subset)))
+    # Make new event ids: the number of the event in its case, 1 for the first event
+    data["eventid"] = data.groupby("id").cumcount() + 1
     
-    evids = [x+1 for x in evids] # + 1 ###################################################### added +1
+    """
+    #######################################################################
+    PREFIX: the window of events of every case
+    #######################################################################
+    """
+    case_length = data.groupby("id")["eventid"].transform("max")
     
-    #set the new eventids
-    data["eventid"] = evids 
+    #determine whether to start in the beginning or end of trace        
+    if window_position == "last_k":
+        #if the max prefix len is smaller than the actual trace, take the K last events, otherwise the full trace
+        window_start = np.where(max_prefix_length < case_length, case_length - max_prefix_length, 1)
+        window_stop = case_length
     
-    #make a counter to keep status
-    num_cases = len(cases)
+    if window_position == "first_k":
+        #if the max prefix len is smaller than the actual trace, take the K first events, otherwise the full trace
+        window_start = 1
+        window_stop = np.where(max_prefix_length < case_length, max_prefix_length, case_length)
     
-    # Generate features case by case
-    for i in cases:
-        #iteration = iteration +1
-        if verbose==True:  
-            print("case:",i, "of",num_cases)
+    #Prefix capability: Subset the window of events of every case (the data to be dummified also follows the prefix convention)
+    datasub = data.loc[(data["eventid"] >= window_start) & (data["eventid"] <= window_stop)].copy()
+    datasub.index = datasub["eventid"]
     
-        #Look only at one caseid at a time
-        subset = data.loc[data["id"] == i]
-        subset.index = subset.eventid
-        
-        """
-        #######################################################################
-        PREFIX:
-        #######################################################################
-        """
-        
-        index1 = 0
-        
-        #determine whether to start in the beginning or end of trace        
-        if window_position == "last_k":
-        
-            #if trace is smaller than desired prefix, just pick the full trace
-            if max_prefix_length > len(subset):
-                start = 1 #0
-                stop = len(subset) - index1 # 
-            
-            #If the the max prefix len is smaller than the actual trace, 
-            #take the K last events (sliding window approach)
-            if max_prefix_length < len(subset):
-                start = len(subset) - max_prefix_length
-                stop = len(subset) - index1
+    """
+    #######################################################################
+    Time features for each event, relative to the window of its case
+    #######################################################################
+    """
+    t = pd.to_datetime(datasub["time"], format=dateformat)
+    by_case = t.groupby(datasub["id"].values)
     
-            #If max prefix is identical to trace len, start from one        
-            if max_prefix_length == len(subset):
-                start = 1 #0
-                stop = len(subset) - index1
-                
-                
-                
-        if window_position == "first_k":
-        
-            #if trace is smaller than desired prefix len, just pick the full trace
-            if max_prefix_length > len(subset):
-                start = 1 #0
-                stop = len(subset) - index1 # 
-            
-            #If the the max prefix len is smaller than the actual trace, 
-            #take the K FIRST events (sliding window approach)
-            if max_prefix_length < len(subset):
-                start = 1
-                stop = max_prefix_length - index1
+    #first and last event of the window, previous and next event
+    t_start = by_case.transform("first")
+    t_stop = by_case.transform("last")
+    t_last = by_case.shift(1)
+    t_next = by_case.shift(-1)
     
-            #If max prefix is identical to trace len, start from one        
-            if max_prefix_length == len(subset):
-                start = 1 #0
-                stop = len(subset) - index1
-        if verbose==True:
-            print("start",start,"stop",stop)
-        
-        #Prefix capability: Subset k last events from trace
-        subset = subset.loc[start:stop]
-        
-        #Make sure the data to be dummified also follows prefix convention
-        if i == 1:
-            datasub = subset
-            if verbose==True:
-                print("len subset:",len(subset))
-                print("len datasub:",len(datasub))
-
-        if i > 1:
-            datasub = pd.concat([datasub, subset],axis=0)
-            
-        """
-        #######################################################################
-        PREFIX:
-        #######################################################################
-        """
-        
-        #Get list of events
-        eventlist = subset.eventid.tolist()
-        
-        #store the case id
-        caseid = str(i)
-        
-        
-        #for every event:
-        for event in eventlist:
-            #print(event)
-            
-            #the number of the event in the case, 1 for the first event
-            event_number = event
-            
-            #get the event for later reference
-            event_activity = subset["event"].loc[event]
-            
-            #For the tax-approach, get next event
-            if event != stop: #len(subset)-1: #if its the last event
-                next_activity = subset["event"].loc[event+1]
-            
-            if event == stop: #len(subset)-1: #if its the last event
-                next_activity = "END"
-                
-                    
-            """
-            #######################################################################
-            Beginning of time features:
-            """
-            
-            #first event
-            starttime = datetime.fromtimestamp(tm.mktime(tm.strptime(subset["time"].loc[start], dateformat)))
-         
-            #time in secs since midnight
-            t = tm.strptime(subset["time"].loc[event], dateformat) #Time now
-            midnight = datetime.fromtimestamp(tm.mktime(t)).replace(hour=0, minute=0, second=0, microsecond=0) #Midnight
-            timesincemidnight = (datetime.fromtimestamp(time.mktime(t)) - midnight).total_seconds()
+    #the next activity, END for the last event of the window
+    next_activity = datasub["event"].groupby(datasub["id"].values).shift(-1).fillna("END")
     
-            #monday = 1
-            dayofweek = datetime.fromtimestamp(tm.mktime(t)).weekday()+1 
-            
-            #hour of day
-            hour = datetime.fromtimestamp(tm.mktime(t)).hour
-    
-            #Time since start in seconds
-            timesincestart = (datetime.fromtimestamp(time.mktime(t)) - starttime).total_seconds()
-    
-            #Time since last event in seconds
-            if event ==start:
-                t_last = tm.strptime(subset["time"].loc[event], dateformat) #Time last event: now
-                timesincelastev = 0
-            if event !=start:
-                t_last = tm.strptime(subset["time"].loc[event-1], dateformat) #Time last event
-                timesincelastev = (datetime.fromtimestamp(time.mktime(t)) - datetime.fromtimestamp(time.mktime(t_last))).total_seconds()
-          
-            #Time until finishtime
-            t_finish = tm.strptime(subset["time"].loc[stop], dateformat) #Time last event
-            timetofinish = (datetime.fromtimestamp(time.mktime(t_finish)) - datetime.fromtimestamp(time.mktime(t))).total_seconds()
-    
-            
-            #Time to next event:
-            if event == stop:#len(subset)-1: #if its the last event
-                t_nextev = tm.strptime(subset["time"].loc[event], dateformat) #Time last event: now
-                timetonextev = 0
-                
-            if event != stop:#len(subset)-1: #if not last event
-                t_nextev = tm.strptime(subset["time"].loc[event+1], dateformat) #Time last event
-                timetonextev = (datetime.fromtimestamp(time.mktime(t_nextev))-datetime.fromtimestamp(time.mktime(t))).total_seconds()
-    
-            """
-            #######################################################################
-            End of time features for each event
-            """
-                    
-            #Make a marker for dropping last step where remaining time (y) = 0
-            drop = 0
-            #Mark if it is the last activity:
-            if event == stop:#len(subset)-1:
-                drop = 1
-                
-               
-            #Actual:
-            results = [caseid,
-                       event_number,
-                       event_activity, #event
-                       timesincemidnight,
-                       dayofweek,
-                       hour,
-                       timesincestart,
-                       timesincelastev,
-                       timetofinish,
-                       timetonextev,
-                       next_activity,
-                       drop]
-            
-            if i == 1 and event == start: #First time
-                out = pd.DataFrame(results).T
-                
-            else:
-                res_i = pd.DataFrame(results).T
-                #out = out.append(res_i)
-                #new try (21/12/23)
-                out = pd.concat([out, res_i],axis=0)
-            
-    #Rename all static vars
-    cols = ['caseid',
-            'event_number',
-            'event_activity',
-            'timesincemidnight',
-            'dayofweek',
-            'hourofday',
-            'timesincestart',
-            'timesincelastev',
-            'y_timetofinish',
-            'y_timetonextev',
-            'next_activity',
-            'drop']
-    out.columns = cols
+    out = pd.DataFrame({
+        "caseid": datasub["id"].astype(str).values,
+        "event_number": datasub["eventid"].values,
+        "event_activity": datasub["event"].values,
+        #time in secs since midnight
+        "timesincemidnight": (t - t.dt.normalize()).dt.total_seconds().values,
+        #monday = 1
+        "dayofweek": (t.dt.weekday + 1).values,
+        #hour of day
+        "hourofday": t.dt.hour.values,
+        #Time since start in seconds
+        "timesincestart": (t - t_start).dt.total_seconds().values,
+        #Time since last event in seconds, 0 for the first event
+        "timesincelastev": (t - t_last).dt.total_seconds().fillna(0).values,
+        #Time until finishtime
+        "y_timetofinish": (t_stop - t).dt.total_seconds().values,
+        #Time to next event, 0 for the last event
+        "y_timetonextev": (t_next - t).dt.total_seconds().fillna(0).values,
+        "next_activity": next_activity.values,
+        #Make a marker for dropping last step where remaining time (y) = 0
+        "drop": t_next.isna().astype(int).values,
+    })
       
     if verbose == True:
         print("============================")
@@ -523,7 +361,8 @@ def GenerateTrainData(df,
         features = ["dayofweek","hourofday"]
         if verbose == True:
             print("Dummification of time features",features)
-        sysdummies = out[features]
+        #as object columns, so that get_dummies encodes the integer values (sorted as numbers)
+        sysdummies = out[features].astype(object)
         sysdummies = pd.get_dummies(sysdummies,prefix="t_")
         sysdummies = sysdummies.reset_index(drop=True)
         out = out.drop(features,axis=1)
@@ -549,7 +388,7 @@ def GenerateTrainData(df,
         print("\ndropping vars:")
     
     # Generate the next_activity target vector
-    y_a = out[y_a_new_varnames]
+    y_a = out[y_a_new_varnames].copy()
     y_a["caseid"] = out["caseid"]
     y_a["event_number"] = out["event_number"]
     
@@ -603,79 +442,53 @@ def GenerateTrainData(df,
 
 
 def PadInputs(caseids, df, max_prefix_len=3, verbose=False):    
+    """
+    One padded sequence per observed event: the rows of the events of its case up to and including it, with rows of
+    zeros in front, so that every sequence has max_prefix_len rows. The sequences are stacked in the order of the
+    cases and the events, with the columns of df, the caseid and a SEQID <caseid>_<event_number> per sequence
+    """
     import pandas as pd
     import numpy as np
-    import time
-    #copy the dataframe
-    res = df
-    maxlen = max_prefix_len
     
-    #Make an empty placeholder of the dataset
-    dataset = pd.DataFrame(df.loc[0]).T
-    dataset["SEQID"] = 0 #placeholder
-    dataset = dataset.drop(0, axis=0)
+    cols = df.columns.tolist()
+    caseid_col = cols.index("caseid")
+    event_col = cols.index("event_number")
     
-    #Make a counter
-    count = 0
-    allcases = len(caseids)
-    timeend = time.time()
+    values = df.values
+    caseid_values = df["caseid"].astype(str).values
+    
+    blocks = []
+    seqids = []
     
     #loop through the cases
     for i in caseids:
-        count = count +1
         
         #Get only events from case i
-        subset = res.loc[res["caseid"] == str(i)]
+        rows = values[caseid_values == str(i)]
+        events = rows[:, event_col].astype(float)
         
-        events = subset["event_number"].unique().tolist() #event
-        cols = subset.columns    
-        
-        #time display
-        timestart = time.time()
-        timetaken=np.round((timestart-timeend),decimals=3)
-        timeleft=np.round(((allcases-count)*(timetaken*60))/60,decimals=2)
-        
-        if verbose==True:
-            print("Case:",count,"of ",allcases," events:",len(events),
-                  "-",timetaken,"s. per case, est.",timeleft,"min. left")
-
-        #for row in subset.itertuples():
-        for j in events:
-            #print(row)
-            #j = int(row.event_number)            
-            """row = subset.loc[subset["event_number"] == j]
-            
-            #if it is touple form, try 2nd colum/datapoint
-            j = int(row.event_number)"""
-
-            
-            ##################
-            # Changing this to the event number, rather than type
-            #j = int(row.eventno)
-            ##################
+        for j in pd.unique(events):
             
             #Get current timestep, and all earlier timesteps
-            EV = subset.loc[subset["event_number"] < j+1]
+            EV = rows[events < j + 1]
             
             #Figure out how many rows to pad
-            rowstoadd = maxlen - len(EV)
+            rowstoadd = max_prefix_len - len(EV)
             
             ### Padding: pre-event-padding ###
-            zeros = np.zeros((rowstoadd, EV.shape[1]))
-            zeros = pd.DataFrame(zeros, columns=cols)
+            zeros = np.zeros((rowstoadd, len(cols)))
             
             #Add the zeros before the actual data
-            EV = pd.concat([zeros, EV], ignore_index=True, axis=0)
+            block = np.vstack([zeros, EV]).astype(object)
+            block[:, caseid_col] = str(i)
             
-            #Set an ID for the sequence
-            EV["SEQID"] = str(i)+"_"+str(j)
-            EV["caseid"] = str(i)
-            
-            #Add the sequence to the dataset
-            #dataset = dataset.append(EV)
-            dataset = pd.concat([dataset,EV], axis=0)
-        timeend = time.time()
-
+            blocks.append(block)
+            seqids.append(str(i) + "_" + str(int(j)))
+    
+    dataset = pd.DataFrame(np.vstack(blocks), columns=cols)
+    
+    #Set an ID for the sequence
+    dataset["SEQID"] = np.repeat(np.array(seqids, dtype=object), max_prefix_len)
     
     if verbose == True:
         print("\n\nOutput length:",len(dataset))
@@ -791,85 +604,37 @@ def CaseData(df, verbose=False):
 
 def GetCaseStats(df, padded_df, CaseData, y_t, y_a, y, prefixwindow=0, dateformat="%Y-%m-%d %H:%M:%S", drop_last_ev=True, verbose=False):
     """  
-    What we want is a table that can be linked with the 
-    observations in the training data. 
-    
-    This table has to be ordered, and then permuted the 
-    exact same way as the X/y output of this pipeline.
-    
-    Table:
-        - SEQID (level)
-            - Input table (prefixes):
-                - Event number (same as number of events in curr. SEQID)
-                - number of events in parent case (trace length)
-                - (other interesting attributes could be added here)
-                
-            - Target values
-                - y
-                - y_t
-                - y_a
-    
-        - Dataset level (aggregated):
-            - number of prefixes in dataset
-            - number of unique cases
-            - number of events 
-            - average number of events per case
-            - (other stats from the survey paper)
+    A table with one row per sequence (prefix) of padded_df, in the same order, which links the observations of the
+    training data to their case and event: the identifier SEQID, the case and its statistics, the number of observed
+    events (prefix_number), the start of the last observed event (prefix_date) and the target values y, y_t and y_a
     """
-
-    #Get all SEQIDs
-    SEQIDS = padded_df["SEQID"].unique().tolist()
+    import pandas as pd
     
-    allseqs = len(SEQIDS)
-    #logic to build output table
-    counter = 0
-    if verbose == True:
-        print("Making casestats..")
-    for i in SEQIDS:
-        if verbose == True:
-            print("Making casestats for SEQ:",counter,"of",allseqs)
-        counter = counter +1    
-        prefix = padded_df.loc[padded_df["SEQID"]==i]
-                
-        SEQID = i
-
-        #get case number and prefix number (the number of the last observed event)
-        caseno = int(prefix["SEQID"].loc[0].split("_")[0])
-        eventno = int(prefix["SEQID"].loc[0].split("_")[1])
-        
-        #Get event-specific data: the last observed event of the prefix
-        case = df.loc[df["id"]==caseno]
-        event = case.loc[case["event_number"]==eventno]
-        
-        eventtime = event["time_parsed"].dt.strftime(dateformat).tolist()[0]
-            
-        #get case stats for current seuqnce/prefix:
-        casestats = CaseData.loc[CaseData["caseid"]==caseno]
-        
-        if verbose == True:
-            print("casestats")
-            print(casestats)
-        
-        casestats["prefix_date"] = eventtime        
-        casestats["prefixes"] = casestats["num_events"]-1
-        casestats["prefixwindow"] = prefixwindow
-        casestats["prefix_number"] = eventno
-        casestats["SEQID"] = SEQID
-        
-        #select what is interesting:
-        casestats = casestats[["SEQID","caseid","log_caseid","num_events",
-                               "prefix_number","prefixes","prefixwindow","prefix_date",
-                               "distinct_events","caseduration_days"]]
-
-        if counter == 1:
-            output = casestats
-        if counter > 1:
-            output = pd.concat([output,casestats],axis=0)
+    #one row per sequence, in the order of padded_df
+    output = padded_df.drop_duplicates("SEQID")[["SEQID"]].reset_index(drop=True)
+    
+    #get case number and prefix number (the number of the last observed event) from the SEQID
+    parts = output["SEQID"].str.split("_", expand=True)
+    output["caseid"] = parts[0].astype(int)
+    output["prefix_number"] = parts[1].astype(int)
+    
+    #case stats for every sequence
+    output = pd.merge(left=output, right=CaseData, on="caseid", how="left")
+    
+    #Get event-specific data: the start of the last observed event of the prefix
+    events = df[["id","event_number","time_parsed"]].rename(columns={"id":"caseid", "event_number":"prefix_number"}).copy()
+    events["prefix_date"] = events["time_parsed"].dt.strftime(dateformat)
+    output = pd.merge(left=output, right=events[["caseid","prefix_number","prefix_date"]], on=["caseid","prefix_number"], how="left")
+    
+    output["prefixes"] = output["num_events"]-1
+    output["prefixwindow"] = prefixwindow
+    
+    #select what is interesting:
+    output = output[["SEQID","caseid","log_caseid","num_events",
+                     "prefix_number","prefixes","prefixwindow","prefix_date",
+                     "distinct_events","caseduration_days"]]
     
     # step 2: Match the new table with target variables
-    #"""    
-    if verbose == True:
-        print("Done.")
     output["y"] = y.tolist()
     output["y_t"] = y_t.tolist()
     output = pd.concat([output.reset_index(drop=True), 
