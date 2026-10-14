@@ -23,7 +23,9 @@ def make_design_table(factor_level_dict):
     df["Done"] = 0
     df["Failure"] = 0
 
-    #change types
-    df.statespace_size = df.statespace_size.astype(int)
+    # statespace_size is an integer setting. It is only a column of the design when it is a factor:
+    # the settings which are not factors are added as columns by the caller afterwards
+    if "statespace_size" in df.columns:
+        df["statespace_size"] = df["statespace_size"].astype(int)
 
     return df

@@ -129,3 +129,29 @@ def test_run_experiments_without_failure_column(tmp_path):
     results = run_experiments(dataprep, training, evaluation, output_dir=out)
     assert results.RUN.tolist() == [1]
     assert pd.read_csv(tmp_path / "design_table.csv").Failure.tolist() == [0]
+
+
+def test_design_table_without_statespace_size(tmp_path):
+    """
+    A design where statespace_size is not a factor can be created and run,
+    with the remaining settings added as constant columns (issue 41)
+    """
+    import pandas as pd
+    from SynBPS.design.DoE import make_design_table
+    from SynBPS.simulation.simulation_pipeline import run_experiments
+    
+    df = make_design_table({"Deterministic_offset_W": ["none", "weekdays"], "seed_value": [1, 2]})
+    assert len(df) == 4
+    assert df.RUN.tolist() == [1, 2, 3, 4]
+    assert "statespace_size" not in df.columns
+    
+    #the settings which are not factors are added as constant columns
+    base = eventlog_settings(process_type="memoryless", number_of_traces=20)
+    for key, value in base.items():
+        if key not in df.columns:
+            df[key] = value
+    df.to_csv(tmp_path / "design_table.csv", index=False)
+    
+    results = run_experiments(dataprep, training, evaluation, output_dir=str(tmp_path) + "/")
+    assert results.RUN.tolist() == [1, 2, 3, 4]
+    assert results.metric.tolist() == [20, 20, 20, 20]
