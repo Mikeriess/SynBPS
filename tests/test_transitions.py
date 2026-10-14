@@ -53,8 +53,7 @@ def test_med_entropy_absorption_reachable_from_every_state(statespace_size, n_tr
     D = make_D(statespace_size)
     
     for seed in range(300):
-        np.random.seed(seed)
-        P = Generate_transition_matrix_med_ent(D, n_tranitions=n_transitions).values
+        P = Generate_transition_matrix_med_ent(D, n_tranitions=n_transitions, seed_value=seed).values
         
         assert len(states_reaching_end(P)) == len(P)
         assert np.allclose(P.sum(axis=1), 1)
@@ -109,8 +108,7 @@ def test_kappa_default_and_effect():
     #the sum of the last column (absorption, incl. the absorption state itself) is at least kappa
     for kappa in [1, 2, 3, 3.5]:
         for seed in range(50):
-            np.random.seed(seed)
-            P = Generate_transition_matrix_med_ent(D, n_tranitions=3, kappa=kappa).values
+            P = Generate_transition_matrix_med_ent(D, n_tranitions=3, kappa=kappa, seed_value=seed).values
             assert P[:, -1].sum() >= kappa - 1e-9
             assert np.allclose(P.sum(axis=1), 1)
     

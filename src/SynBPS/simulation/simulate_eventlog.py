@@ -237,13 +237,10 @@ def generate_eventlog(curr_settings, verbose=False):
         print("Using custom distributions:\n", curr_settings["custom_distributions"])
         custom_dist = curr_settings["custom_distributions"]
 
-    # set the seed 
-    from numpy.random import seed
-    
+    # the seed of every random stream of the simulation (see make_rng). The global numpy stream is not used
     seed_val = int(curr_settings["seed_value"])
     if verbose==True:
         print("seed:",seed_val)
-    seed(seed_val)
 
     from SynBPS.simulation.simulation_helpers import make_D, make_workweek
     

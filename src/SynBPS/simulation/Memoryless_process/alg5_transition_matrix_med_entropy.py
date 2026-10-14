@@ -43,7 +43,8 @@ def States_not_reaching_absorption(P):
 def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
                                        n_tranitions=3,
                                        kappa = 2,
-                                       seed_value=1337):
+                                       seed_value=1337,
+                                       rng=None):
     """
     Generation of transition matrix: Medium entropy (alg. 5)
 
@@ -59,7 +60,9 @@ def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
         a random state instead of adding to it, and becomes very slow when the states need more than half of
         their probability mass for absorption on average
     
-    seed_value : not used, the global numpy stream is seeded by the caller
+    seed_value : seed of the stream memoryless_tables, used when rng is not given
+
+    rng : numpy random generator, the stream of the tables of the memoryless process
 
     Returns
     -------
@@ -82,6 +85,10 @@ def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
     
     import numpy as np
     import pandas as pd
+    from SynBPS.simulation.simulation_helpers import make_rng
+
+    if rng is None:
+        rng = make_rng(seed_value, "memoryless_tables")
     
     D_orig = D.copy()
     D_orig.append("END")
@@ -93,7 +100,7 @@ def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
         L = np.zeros(len(D_orig))
         
         #draw n states from D, without replacement
-        s = np.random.choice(D_orig, size=n_tranitions, replace=False)
+        s = rng.choice(D_orig, size=n_tranitions, replace=False)
                     
         #get indexes of states in s
         idx=[]
@@ -103,7 +110,7 @@ def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
         #draw probabilities for each state s
         #and replace that index of L with x_i
         for i in idx:
-            x_i = np.random.uniform(0,1)
+            x_i = rng.uniform(0,1)
             L[i] = x_i
         
         #normalize to probability space
@@ -132,10 +139,9 @@ def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
         #get the last column
         lastcol = P[:,len(D_orig)-1]
         
-        value_to_add = np.random.uniform(0.01,1.0)
+        value_to_add = rng.uniform(0.01,1.0)
         #draw a row randomly, which is not the last row
-        idx = np.random.choice(list(range(0,len(lastcol)-1)),
-                               size=1)[0]
+        idx = rng.integers(0,len(lastcol)-1)
         #Add the probability to the i'th row
         lastcol[idx] = value_to_add
         # write the changes back to matrix P
@@ -155,10 +161,10 @@ def Generate_transition_matrix_med_ent(D = ["a","b","c","d","e"],
 
     while len(unreachable) > 0:
         #draw one of the states which cannot reach the absorption state
-        idx = np.random.choice(unreachable)
+        idx = rng.choice(unreachable)
 
         #add a random probability of a transition to the absorption state, as in Test2
-        P[idx, len(D_orig)-1] = np.random.uniform(0.01,1.0)
+        P[idx, len(D_orig)-1] = rng.uniform(0.01,1.0)
 
         #normalize the row probabilities
         P[idx,:] = P[idx,:]/np.sum(P[idx,:])
