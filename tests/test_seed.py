@@ -83,7 +83,7 @@ def test_memoryless_process_uses_its_seed():
     Theta2, Phi2 = Process_without_memory(D=D, mode="med_entropy", num_traces=20, num_transitions=3, seed_value=9)
     
     assert Theta1 == Theta2
-    assert Phi1[1].equals(Phi2[1])
+    assert Phi1["P"].equals(Phi2["P"])
 
 
 def test_make_rng_streams():
@@ -103,9 +103,61 @@ def test_make_rng_streams():
     assert not np.array_equal(make_rng(5, "homc_sampling").random(5), make_rng(6, "homc_tables").random(5))
     assert not np.array_equal(make_rng(5, "homc_tables").random(5), np.random.default_rng(5).random(5))
     
+    #the streams of the memoryless process are not those of the process with memory
+    assert not np.array_equal(make_rng(5, "memoryless_tables").random(5), make_rng(5, "homc_tables").random(5))
+    assert not np.array_equal(make_rng(5, "memoryless_sampling").random(5), make_rng(5, "memoryless_tables").random(5))
+    
     #unknown stream
     with pytest.raises(ValueError):
         make_rng(5, "durations")
+
+
+def test_simulation_does_not_use_the_global_stream():
+    """
+    No component draws from the global numpy stream (issue 51): the state of numpy.random is the same
+    before and after a simulation, and draws made by user code between two simulations do not change the log
+    """
+    import numpy as np
+    import pandas as pd
+    from SynBPS.simulation.simulate_eventlog import generate_eventlog
+    from SynBPS.simulation.Memoryless_process.alg5_transition_matrix_med_entropy import Generate_transition_matrix_med_ent
+    
+    for process_type in ["memoryless", "memory"]:
+        settings = eventlog_settings(process_type=process_type, number_of_traces=30)
+        
+        np.random.seed(0)
+        before = np.random.random()
+        np.random.seed(0)
+        log1 = generate_eventlog(settings)
+        after = np.random.random()
+        assert before == after
+        
+        #user code which uses the global stream between two simulations
+        np.random.seed(123)
+        np.random.random(100)
+        log2 = generate_eventlog(settings)
+        pd.testing.assert_frame_equal(log1, log2)
+    
+    #direct calls of the table algorithms are reproducible from seed_value alone
+    P1 = Generate_transition_matrix_med_ent(["a","b","c","d"], n_tranitions=2, seed_value=4)
+    np.random.seed(99)
+    P2 = Generate_transition_matrix_med_ent(["a","b","c","d"], n_tranitions=2, seed_value=4)
+    assert P1.equals(P2)
+
+
+def test_memoryless_tables_independent_of_num_traces():
+    """
+    P0 and P of the memoryless process are the same whatever num_traces is: the tables and the sampling have their own streams
+    """
+    from SynBPS.simulation.alg6_memoryless_process_generator import Process_without_memory
+    
+    D = ["a","b","c","d","e"]
+    for mode in ["min_entropy", "med_entropy", "max_entropy"]:
+        Theta_small, Phi_small = Process_without_memory(D=D, mode=mode, num_traces=5, num_transitions=3, seed_value=8)
+        Theta_big, Phi_big = Process_without_memory(D=D, mode=mode, num_traces=20, num_transitions=3, seed_value=8)
+        assert list(Phi_small["P0"]) == list(Phi_big["P0"])
+        assert Phi_small["P"].equals(Phi_big["P"])
+        assert Theta_big[:5] == Theta_small
 
 
 def test_lambda_rows_stable():

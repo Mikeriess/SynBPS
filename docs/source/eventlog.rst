@@ -12,7 +12,7 @@ A single event-log is generated with ``generate_eventlog``, which takes a dictio
                     "number_of_traces":1000,
 
                     # level of entropy: min, medium and/or max
-                    "process_entropy": "max_entropy",# "min_entropy","med_entropy","max_entropy"
+                    "process_entropy": "med_entropy",# "min_entropy","med_entropy","max_entropy"
 
                     # first or higher-order markov chain to represent the transitions "memoryless", "memory"
                     "process_type":"memory",#"memoryless",
@@ -134,15 +134,64 @@ With ``process_type = "memory"``, the next activity depends on the last ``proces
 
 ``HOMC["Phi"]`` holds one table per order 1 to k. ``Phi[i]`` maps every context of ``i`` activities to a probability vector over the activities plus the absorption state ``END``. The first events of a trace, which have fewer than k previous activities, use the table of their own length. In every context the probability of ``END`` is at least ``p_abs_min``, which guarantees that every trace ends.
 
-With ``min_entropy`` the process is one deterministic trace, with ``med_entropy`` each context has ``med_ent_n_transitions`` possible next activities, and with ``max_entropy`` every transition is equally likely from every context (so ``process_memory`` has no effect on the control-flow at this level).
+With ``min_entropy`` the process is one deterministic trace, with ``med_entropy`` each context has ``med_ent_n_transitions`` possible next activities with random weights, and with ``max_entropy`` every transition is equally likely from every context. The levels form a ladder: ``min_entropy``, then ``med_entropy`` with 2 up to ``statespace_size`` + 1 transitions, then ``max_entropy``. ``max_entropy`` is the uniform extreme, where the next activity does not depend on the previous ones: ``process_memory`` has no effect on the control-flow at this level, and ``check_settings`` warns when it is above 1. The highest level where every transition is possible and the memory order matters is ``med_entropy`` with ``med_ent_n_transitions`` = ``statespace_size`` + 1.
 
 Reproducibility
 ------------------
-Every random draw of the simulation is derived from ``seed_value``. Each component (the transition tables, the sampling of the traces, the arrival times, the duration parameters, the resource offsets, the stability offsets and the activity durations) has its own random stream, which gives the following properties:
+Every random draw of the simulation is derived from ``seed_value``. Each component (the transition tables, the sampling of the traces, the arrival times, the duration parameters, the resource offsets, the stability offsets and the activity durations) has its own random stream, for both process types, and the global stream of numpy is not used. This gives the following properties:
 
 * Two calls with the same settings give the same event-log, in every column.
 * The first traces of an event-log do not change when ``number_of_traces`` is increased: a larger log is a larger sample from the same process.
 * Changing one setting only changes the draws of the component which uses it. For example, changing ``resource_availability_p`` leaves the activities, the arrival times, the stability offsets and the activity durations unchanged, and only changes the resource offsets ``h_t`` and everything derived from them.
+* Random draws made by other code, such as ``numpy.random`` calls in a model or in a library, do not change the event-log, and a simulation does not change the state of ``numpy.random``.
+* The process behind a log can be recovered from its settings without generating the log, see `The data-generating process`_ below.
+
+The data-generating process
+----------------------------
+The process behind an event-log is known, which is the point of a simulation in a controlled study: with the initial probabilities, the transition tables and the mean activity durations in hand, the next activity with the highest probability can be read off the tables, and the remaining time can be simulated from the true parameters. ``recover_dgp`` returns them from the settings, without generating the log, and ``generate_eventlog`` returns them together with the log with ``return_dgp=True``. Both give the same process.
+
+.. code-block:: python
+
+    from SynBPS.simulation.simulate_eventlog import generate_eventlog, recover_dgp
+
+    dgp = recover_dgp(eventlog_settings)                          # from the settings
+    log, dgp = generate_eventlog(eventlog_settings, return_dgp=True)   # together with the log
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Key
+     - Meaning
+   * - ``process_type``, ``mode``
+     - ``process_type`` and ``process_entropy`` of the settings
+   * - ``D``, ``D_abs``
+     - The activities, and the activities followed by the absorption state ``END``
+   * - ``K``
+     - The order of the process: ``process_memory``, or 1 for the memoryless process
+   * - ``P0``
+     - The initial probabilities, an array over ``D``
+   * - ``Phi``
+     - The transition tables: ``Phi[k][context]`` is the probability vector over ``D_abs`` given the last ``k`` activities (a tuple), for ``k`` from 1 to ``K``. A prefix shorter than ``K`` uses the table of its own length. The memoryless process has the one table ``Phi[1]``, with the rows of its transition matrix
+   * - ``P``
+     - The transition matrix of the memoryless process as a dataframe with the rows and columns ``D_abs`` (``None`` for the process with memory)
+   * - ``Lambda``
+     - The mean activity durations in days: one row per position in the trace (0 for the first event) and one column per activity, for every position up to ``max_len``
+   * - ``time_settings``
+     - The settings of the time variables: ``inter_arrival_time``, ``process_stability_scale``, ``resource_availability_p``, ``_n``, ``_m`` and ``_mode``, ``activity_duration_lambda_range``, ``Deterministic_offset_W`` (as a matrix of closed hours) and ``Deterministic_offset_u``
+   * - ``max_len``, ``seed_value``, ``datetime_offset``
+     - The settings of the same name
+
+The next activity with the highest probability after the observed activities of a prefix, for either process type:
+
+.. code-block:: python
+
+    def most_likely_next_activity(dgp, activities):
+        k = min(len(activities), dgp["K"])
+        p = dgp["Phi"][k][tuple(activities[-k:])]
+        return dgp["D_abs"][p.argmax()]        # "END" when the trace most likely ends
+
+The time variables of an event are the resource offset (geometric number of requests times ``resource_availability_m``), the stability offset (exponential with mean ``process_stability_scale``), the business-hours offset (deterministic, from the time in the week) and the duration (exponential with mean ``Lambda`` at the activity and position). The expected remaining time of a prefix therefore depends on the time of its last event, and is computed by simulating the continuation of the trace from ``Phi`` and ``Lambda`` with these offsets.
 
 Custom distributions
 ----------------------

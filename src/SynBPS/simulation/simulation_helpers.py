@@ -85,7 +85,9 @@ def make_rng(seed_value, stream):
                "lambdas":3, 
                "resource":4, 
                "stability":5, 
-               "duration":6}
+               "duration":6,
+               "memoryless_tables":7,
+               "memoryless_sampling":8}
     
     #error handling
     if stream not in streams:

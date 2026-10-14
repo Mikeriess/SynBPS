@@ -23,19 +23,25 @@ def Process_without_memory(D = ["a","b","c","d","e"],
     kappa : minimum total probability of absorption over all states (med_entropy only), see alg 5
     custom_distribution : dict with the files p0, p and Lambda (custom only)
     max_len : maximum number of events in a trace before an exception is raised
-    seed_value : seed for the random generator
+    seed_value : seed of the two random streams of the process: memoryless_tables for P0 and P
+        (alg. 2 to 5) and memoryless_sampling for the traces, so the tables do not depend on
+        num_traces, and the traces of a seed do not depend on the global numpy stream
 
     Returns
     -------
     Theta : list of traces, each ending with the absorption state END
-    Phi : list with the initial probabilities P0 and the transition matrix P
+    HOMC : dict with the process in the structure of create_homc (the process with memory, of order K = 1):
+        D, D_abs, P0 (array over D), Phi ({1: {(d,): probability vector over D_abs}}), K, mode,
+        and P, the transition matrix as a dataframe with the rows and columns D_abs
     """
 
     import numpy as np
     import pandas as pd
+    from SynBPS.simulation.simulation_helpers import make_rng
     
-    #the memoryless process draws from the global numpy stream, which is seeded here for reproducibility
-    np.random.seed(seed_value)
+    #one stream for the tables and one for the sampling, as alg. 7 does for the process with memory
+    rng_tables = make_rng(seed_value, "memoryless_tables")
+    rng_sampling = make_rng(seed_value, "memoryless_sampling")
     
     from SynBPS.simulation.Memoryless_process.alg2_initial_probabilities import GenerateInitialProb
 
@@ -59,20 +65,20 @@ def Process_without_memory(D = ["a","b","c","d","e"],
     
     if mode =="min_entropy":
         #initial probabilities
-        P0 = GenerateInitialProb(D, p0_type="min_entropy")
-        P = Generate_transition_matrix_min_ent(D, P0)
+        P0 = GenerateInitialProb(D, p0_type="min_entropy", rng=rng_tables)
+        P = Generate_transition_matrix_min_ent(D, P0, rng=rng_tables)
         P.index = D_abs
         
     if mode =="max_entropy":
         #initial probabilities
-        P0 = GenerateInitialProb(D, p0_type="max_entropy")
-        P = Generate_transition_matrix_max_ent(D)
+        P0 = GenerateInitialProb(D, p0_type="max_entropy", rng=rng_tables)
+        P = Generate_transition_matrix_max_ent(D, rng=rng_tables)
         P.index = D_abs
         
     if mode =="med_entropy":
         #initial probabilities
-        P0 = GenerateInitialProb(D, p0_type="med_entropy")
-        P = Generate_transition_matrix_med_ent(D, n_tranitions=num_transitions, kappa=kappa)
+        P0 = GenerateInitialProb(D, p0_type="med_entropy", rng=rng_tables)
+        P = Generate_transition_matrix_med_ent(D, n_tranitions=num_transitions, kappa=kappa, rng=rng_tables)
         P.index = D_abs
 
     if mode =="custom":
@@ -93,8 +99,15 @@ def Process_without_memory(D = ["a","b","c","d","e"],
         P.index = D_abs
 
     
-    # Transition matrices
-    Phi = [P0, P]
+    # the process in the structure of create_homc: Phi[1][(d,)] is the row of d, as for a HOMC of order 1
+    P0 = np.asarray(P0, dtype=float)
+    HOMC = {"D":D, 
+            "D_abs":D_abs, 
+            "P0":P0, 
+            "Phi":{1: {(d,): P.loc[d].values.astype(float) for d in D}}, 
+            "K":1, 
+            "mode":mode, 
+            "P":P}
         
     for trace in list(range(0,repetitions)):
             
@@ -105,8 +118,7 @@ def Process_without_memory(D = ["a","b","c","d","e"],
         t=1
         
         #sample from initial distribution
-        e_t = np.random.choice(D, #len(D), #
-                               size=1, replace=False, p=P0)[0]
+        e_t = D[rng_sampling.choice(len(D), p=P0)]
         
         #append first event to trace
         sigma.append(e_t)
@@ -121,11 +133,11 @@ def Process_without_memory(D = ["a","b","c","d","e"],
             #get conditional probability (e_t'th row of P)
             p_t = P.loc[P.index==e_t]
                         
-            e_t = np.random.choice(D_abs, size=1, replace=False, p=p_t.values[0])[0]
+            e_t = D_abs[rng_sampling.choice(len(D_abs), p=p_t.values[0])]
             
             sigma.append(e_t)
         
         #print("trace:",sigma)
 
         Theta.append(sigma)
-    return Theta, Phi
+    return Theta, HOMC

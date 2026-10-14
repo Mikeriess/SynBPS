@@ -26,7 +26,7 @@ All settings of ``generate_eventlog`` and of a design table, with the name used 
      - both
    * - ``process_entropy``
      - entropy level
-     - ``min_entropy``: one deterministic trace. ``med_entropy``: ``med_ent_n_transitions`` possible transitions from each state. ``max_entropy``: every transition equally likely (alg. 4). ``custom``: distributions from files, see ``custom_distributions``
+     - ``min_entropy``: one deterministic trace. ``med_entropy``: ``med_ent_n_transitions`` possible transitions from each state, with random weights. ``max_entropy``: every transition equally likely from every state (alg. 4), the uniform extreme. ``custom``: distributions from files, see ``custom_distributions``. See the ladder of the levels below
      - -
      - ``"med_entropy"``
      - both
@@ -145,6 +145,7 @@ Properties of the simulation
 * Traces are independent of each other: the resource offset is drawn per event (alg. 8), and there is no shared queue.
 * The mean duration ``Lambda(d, t)`` depends on the activity and on its position in the trace, so the same activity has a different mean duration at position 2 and position 5.
 * All parameters of exponential distributions are means, in days: ``inter_arrival_time``, ``process_stability_scale`` and the mean activity durations ``Lambda(d, t)`` drawn up to ``activity_duration_lambda_range``. This is the scale parameter of numpy. The paper writes the exponential distribution with a rate λ in eq. 7, eq. 18 and alg. 1, and the rate is 1 divided by the setting. The expected throughput time of a trace (eq. 25) is therefore the sum of the mean durations and offsets of its events.
-* The transition tables of the process with memory can be recovered from the seed with ``create_homc`` (``SynBPS.simulation.alg7_memory_process_generator``), independent of ``number_of_traces``. A prefix shorter than ``process_memory`` uses the table of its own length.
+* The process behind a log (initial probabilities, transition tables and mean activity durations) can be recovered from the settings with ``recover_dgp``, independent of ``number_of_traces``, see :doc:`eventlog`. A prefix shorter than ``process_memory`` uses the table of its own length.
 * ``number_of_traces`` is not the number of events: the trace length depends on the entropy level, ``statespace_size``, ``med_ent_n_transitions``, ``p_abs_min`` and ``process_memory``.
-* ``run_experiments`` passes the settings of the run to every user function which declares a ``settings`` keyword argument, as the row of the design table. A training function which needs the data generating process recovers it from them, for example with ``create_homc``. See :doc:`example`.
+* The entropy levels form a ladder: ``min_entropy`` (one deterministic trace), then ``med_entropy`` with ``med_ent_n_transitions`` from 2 up to every transition (``statespace_size`` + 1 for the process with memory, ``statespace_size`` for the memoryless process, whose transitions to the absorption state come from ``med_ent_kappa``), then ``max_entropy``. ``max_entropy`` is the uniform extreme: the next activity does not depend on the previous ones, so ``process_memory`` has no effect there, and ``check_settings`` warns when it is above 1. The highest level where every transition is possible and the memory order matters is ``med_entropy`` with ``med_ent_n_transitions`` = ``statespace_size`` + 1.
+* ``run_experiments`` passes the settings of the run to every user function which declares a ``settings`` keyword argument, as the row of the design table. A training function which needs the data-generating process recovers it from them with ``recover_dgp``. See :doc:`example`.

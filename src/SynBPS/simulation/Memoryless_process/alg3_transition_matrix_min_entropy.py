@@ -10,11 +10,23 @@ Generation of transition matrix: Minimum entropy
 """
 
 
-def Generate_transition_matrix_min_ent(D = ["a","b","c","d","e"], P0=[], seed_value=1337):
-    import numpy as np
-    #np.random.seed(seed_value) 
+def Generate_transition_matrix_min_ent(D = ["a","b","c","d","e"], P0=[], seed_value=1337, rng=None):
+    """
+    Transition matrix of one deterministic trace through every state (alg. 3).
 
+    Parameters
+    ----------
+    D : list of states, without the absorption state
+    P0 : one-hot initial probabilities, from alg. 2 with p0_type min_entropy
+    seed_value : seed of the stream memoryless_tables, used when rng is not given
+    rng : numpy random generator, the stream of the tables of the memoryless process
+    """
+    import numpy as np
     import pandas as pd
+    from SynBPS.simulation.simulation_helpers import make_rng
+
+    if rng is None:
+        rng = make_rng(seed_value, "memoryless_tables")
     
  
     #absorption state is added to P0
@@ -40,7 +52,7 @@ def Generate_transition_matrix_min_ent(D = ["a","b","c","d","e"], P0=[], seed_va
     ##### STEP1 generate a trace
     
     #draw the trace with uniform probabilities
-    trace = np.random.choice(D_free, size=len(D_free), replace=False)
+    trace = rng.choice(D_free, size=len(D_free), replace=False)
     trace = trace.tolist()
     
     #add the transient state in the end

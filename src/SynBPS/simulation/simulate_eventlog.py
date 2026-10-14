@@ -9,6 +9,8 @@ def check_settings(curr_settings):
         ValueError: One line per problem found, each ending with the setting to change.
     """
 
+    import warnings
+
     # problems found so far
     problems = []
 
@@ -91,6 +93,10 @@ def check_settings(curr_settings):
         process_memory = number("process_memory")
         if process_memory is not None and not in_range(process_memory, 1, float("inf")):
             problems.append("process_memory must be 1 or larger for the process with memory, but is " + str(process_memory) + ". Change process_memory.")
+
+        # max_entropy is the uniform row from every context, so the control-flow is the same for every order
+        if process_entropy == "max_entropy" and process_memory is not None and process_memory > 1:
+            warnings.warn("process_memory has no effect with max_entropy: every transition is equally likely from every context, so the control-flow is the same for every order. Use med_entropy with med_ent_n_transitions = statespace_size + 1 for a process where every transition is possible and the memory order matters.")
 
         p_abs_min = number("p_abs_min")
         if p_abs_min is not None and not in_range(p_abs_min, 0, 1, high_included=False):
@@ -191,61 +197,24 @@ def continuous_to_datetime(days, origin):
     return origin + pd.to_timedelta(seconds, unit="s")
 
 
-def generate_eventlog(curr_settings, verbose=False):
+def parse_settings(curr_settings):
     """
-    Generates an event log based on specified parameters.
-
-    Args:
-        curr_settings (dict): A dictionary containing the following keys:
-            number_of_traces (int): Number of traces/cases in the event log.
-            process_entropy (str): Level of entropy. Options: "min_entropy", "med_entropy", "max_entropy" or "custom" for custom_distribution (see below).
-            process_type (str): Type of Markov chain. Options: "memoryless", "memory".
-            process_memory (int): Order of the Higher-Order Markov Chain (HOMC). Only used when process_type is "memory".
-            p_abs_min (float): (Default: 0.05) Minimum probability of ending the trace from any state. Only used when process_type is "memory" and process_entropy is "med_entropy" or "max_entropy". A value of 0 removes the guarantee that every trace ends.
-            max_len (int): (Default: 10000) Maximum number of events in a trace, after which an exception is raised.
-            statespace_size (int): Number of activity types (2 to 29). The activities are named with the letters a, b, c, ...
-            med_ent_n_transitions (int): Number of possible transitions from each state, drawn from the activities and the absorption state. Only used when process_entropy is "med_entropy". Between 2 and statespace_size (statespace_size + 1 for the process with memory).
-            med_ent_kappa (float): (Default: 2) Minimum of the total probability of ending the trace, summed over all states, where the absorption state contributes 1 (kappa in alg. 5). States get random transitions to the absorption state until the sum is reached, so a higher value gives shorter traces. Between 0 and 1 + statespace_size/2. Only used when process_type is "memoryless" and process_entropy is "med_entropy".
-            inter_arrival_time (float): Mean time between the arrivals of two traces, in days (the scale of the exponential distribution, not a rate).
-            process_stability_scale (float): Mean of the exponential noise added before each event, in days. 0 means no noise.
-            resource_availability_p (float): Probability that an agent is available at a request (above 0, at most 1).
-            resource_availability_n (int): Number of agents in the process.
-            resource_availability_m (float): Time per request until an agent is available, in days. 0.041 days is about one hour.
-            resource_availability_mode (str): (Default: "all_requests") Which requests take the time resource_availability_m. "all_requests": every request, also the successful one, so the offset is at least m. "failed_requests": only the requests at which no agent was available, so the offset is 0 when an agent is available at the first request (alg. 8).
-            activity_duration_lambda_range (float): Upper limit of the uniform distribution (from 0.0001) the mean activity durations Lambda(d, t) are drawn from, in days. The duration of an event is exponential with that mean.
-            Deterministic_offset_W (str): Business hours definition. Options: "weekdays", "all-week" or "none" (no closed hours).
-            Deterministic_offset_u (int): Length of a week in the time unit used (7 for days). The business hours of Deterministic_offset_W assume 7.
-            datetime_offset (int): Offset for timestamps in years after 1970. The simulation starts (t = 0) on the first Sunday of that year at 18:00, so the business hours fall on the same weekdays for every offset.
-            seed_value (int): Seed of all random streams (0 to 2**32 - 1). The same settings and seed give the same event-log.
-            custom_distributions(dict): (Default: None) Dictionary with filenames for custom initial probabilities, transition matrix and duration distribution. Example usage: {"p0":"data/p0.csv", "p":"data/p.csv","Lambda":"data/lambda.csv"}
-
-        All exponential parameters (inter_arrival_time, process_stability_scale, Lambda(d, t)) are means in days, the scale of numpy.
-
-    Returns:
-        Pandas dataframe with the simulated event-log
-
-    Raises:
-        ValueError: If a setting is missing or invalid. The message lists every problem found.
+    Reads the settings of a simulation into the arguments of the generators: the statespace, the
+    settings of the process, the time settings (as given to Generate_time_variables) and the defaults
+    of the optional settings. The settings are checked first (check_settings).
     """
+    from SynBPS.simulation.simulation_helpers import make_D, make_workweek
 
-    # check all settings first
     check_settings(curr_settings)
 
     # check for custom distributions (the key may be missing or None)
     custom_dist = None
     if "custom_distributions" in curr_settings and curr_settings["custom_distributions"] is not None:
-        print("Using custom distributions:\n", curr_settings["custom_distributions"])
         custom_dist = curr_settings["custom_distributions"]
 
-    # set the seed 
-    from numpy.random import seed
-    
+    # the seed of every random stream of the simulation (see make_rng). The global numpy stream is not used
     seed_val = int(curr_settings["seed_value"])
-    if verbose==True:
-        print("seed:",seed_val)
-    seed(seed_val)
 
-    from SynBPS.simulation.simulation_helpers import make_D, make_workweek
     
     statespace = make_D(int(curr_settings["statespace_size"]))
     number_of_traces = int(curr_settings["number_of_traces"])  
@@ -274,6 +243,168 @@ def generate_eventlog(curr_settings, verbose=False):
                     "Deterministic_offset_u":int(curr_settings["Deterministic_offset_u"])}
     
     datetime_offset = int(curr_settings["datetime_offset"])
+
+    return {"custom_dist":custom_dist,
+            "seed_value":seed_val,
+            "statespace":statespace,
+            "number_of_traces":number_of_traces,
+            "process_entropy":process_entropy,
+            "process_type":process_type,
+            "process_memory":process_memory,
+            "num_transitions":num_transitions,
+            "p_abs_min":p_abs_min,
+            "kappa":kappa,
+            "max_len":max_len,
+            "time_settings":time_settings,
+            "datetime_offset":datetime_offset}
+
+
+def make_dgp(s, HOMC, Lambd):
+    """
+    The data-generating process of a simulation as a dict, see recover_dgp
+    """
+    return {"process_type":s["process_type"],
+            "mode":HOMC["mode"],
+            "D":HOMC["D"],
+            "D_abs":HOMC["D_abs"],
+            "K":HOMC["K"],
+            "P0":HOMC["P0"],
+            "Phi":HOMC["Phi"],
+            "P":HOMC["P"] if "P" in HOMC else None,
+            "Lambda":Lambd,
+            "time_settings":s["time_settings"],
+            "max_len":s["max_len"],
+            "seed_value":s["seed_value"],
+            "datetime_offset":s["datetime_offset"]}
+
+
+def recover_dgp(curr_settings):
+    """
+    Recovers the data-generating process of an event-log from its settings, without generating the log.
+
+    The process is the same as the one behind generate_eventlog(curr_settings), as the tables and the
+    duration parameters are drawn from their own random streams of seed_value, independent of the traces.
+    It is what a model which uses the true process needs, for example the next activity with the highest
+    probability given the last K activities (read off Phi), or a simulation of the remaining time from the
+    true parameters.
+
+    Args:
+        curr_settings (dict): the settings of generate_eventlog
+
+    Returns:
+        dict with the following keys:
+            process_type: "memoryless" or "memory"
+            mode: the entropy level (process_entropy)
+            D: the activities, and D_abs: the activities followed by the absorption state "END"
+            K: the order of the process (process_memory, or 1 for the memoryless process)
+            P0: the initial probabilities, an array over D
+            Phi: the transition tables, Phi[k][context] is the probability vector over D_abs given the last k
+                activities (a tuple), for k = 1 to K. A prefix shorter than K uses the table of its own length
+            P: the transition matrix of the memoryless process as a dataframe with the rows and columns D_abs
+                (None for the process with memory, whose tables are in Phi)
+            Lambda: the mean activity durations in days, a dataframe with one row per position in the trace
+                (0 for the first event) and one column per activity, for every position up to max_len
+            time_settings: the settings of the time variables, as given to Generate_time_variables
+            max_len, seed_value, datetime_offset: the settings of the same name
+    """
+    import pandas as pd
+    from SynBPS.simulation.alg6_memoryless_process_generator import Process_without_memory
+    from SynBPS.simulation.alg7_memory_process_generator import create_homc
+    from SynBPS.simulation.Duration.duration_helpers import Generate_lambdas
+
+    s = parse_settings(curr_settings)
+
+    # the tables of the process
+    if s["process_type"] == "memory":
+        HOMC = create_homc(D=s["statespace"], 
+                           K=s["process_memory"], 
+                           mode=s["process_entropy"], 
+                           n_transitions=s["num_transitions"], 
+                           p_abs_min=s["p_abs_min"], 
+                           seed_value=s["seed_value"])
+
+    if s["process_type"] == "memoryless":
+        Theta, HOMC = Process_without_memory(D=s["statespace"], 
+                                             mode=s["process_entropy"], 
+                                             num_traces=0, 
+                                             num_transitions=s["num_transitions"], 
+                                             kappa=s["kappa"],
+                                             custom_distribution=s["custom_dist"],
+                                             max_len=s["max_len"],
+                                             seed_value=s["seed_value"])
+
+    # the mean activity durations, for every position (as in Generate_time_variables)
+    if s["custom_dist"] is None:
+        Lambd = Generate_lambdas(D=s["statespace"], 
+                                 t=s["max_len"], 
+                                 lambd_range=s["time_settings"]["activity_duration_lambda_range"],
+                                 seed_value=s["seed_value"])
+    if s["custom_dist"] is not None:
+        Lambd = pd.read_csv(s["custom_dist"]["Lambda"])
+        Lambd.columns = s["statespace"]
+
+    return make_dgp(s, HOMC, Lambd)
+
+
+def generate_eventlog(curr_settings, verbose=False, return_dgp=False):
+    """
+    Generates an event log based on specified parameters.
+
+    Args:
+        curr_settings (dict): A dictionary containing the following keys:
+            number_of_traces (int): Number of traces/cases in the event log.
+            process_entropy (str): Level of entropy. Options: "min_entropy" (one deterministic trace), "med_entropy" (med_ent_n_transitions possible transitions from each state, with random weights), "max_entropy" (every transition equally likely from every state, the uniform extreme) or "custom" for custom_distribution (see below). The levels form a ladder: min_entropy, med_entropy with 2 up to every transition, max_entropy.
+            process_type (str): Type of Markov chain. Options: "memoryless", "memory".
+            process_memory (int): Order of the Higher-Order Markov Chain (HOMC). Only used when process_type is "memory". With max_entropy the next activity does not depend on the previous ones, so the order has no effect (a warning is given); the highest level where the order matters is med_entropy with med_ent_n_transitions = statespace_size + 1.
+            p_abs_min (float): (Default: 0.05) Minimum probability of ending the trace from any state. Only used when process_type is "memory" and process_entropy is "med_entropy" or "max_entropy". A value of 0 removes the guarantee that every trace ends.
+            max_len (int): (Default: 10000) Maximum number of events in a trace, after which an exception is raised.
+            statespace_size (int): Number of activity types (2 to 29). The activities are named with the letters a, b, c, ...
+            med_ent_n_transitions (int): Number of possible transitions from each state, drawn from the activities and the absorption state. Only used when process_entropy is "med_entropy". Between 2 and statespace_size (statespace_size + 1 for the process with memory).
+            med_ent_kappa (float): (Default: 2) Minimum of the total probability of ending the trace, summed over all states, where the absorption state contributes 1 (kappa in alg. 5). States get random transitions to the absorption state until the sum is reached, so a higher value gives shorter traces. Between 0 and 1 + statespace_size/2. Only used when process_type is "memoryless" and process_entropy is "med_entropy".
+            inter_arrival_time (float): Mean time between the arrivals of two traces, in days (the scale of the exponential distribution, not a rate).
+            process_stability_scale (float): Mean of the exponential noise added before each event, in days. 0 means no noise.
+            resource_availability_p (float): Probability that an agent is available at a request (above 0, at most 1).
+            resource_availability_n (int): Number of agents in the process.
+            resource_availability_m (float): Time per request until an agent is available, in days. 0.041 days is about one hour.
+            resource_availability_mode (str): (Default: "all_requests") Which requests take the time resource_availability_m. "all_requests": every request, also the successful one, so the offset is at least m. "failed_requests": only the requests at which no agent was available, so the offset is 0 when an agent is available at the first request (alg. 8).
+            activity_duration_lambda_range (float): Upper limit of the uniform distribution (from 0.0001) the mean activity durations Lambda(d, t) are drawn from, in days. The duration of an event is exponential with that mean.
+            Deterministic_offset_W (str): Business hours definition. Options: "weekdays", "all-week" or "none" (no closed hours).
+            Deterministic_offset_u (int): Length of a week in the time unit used (7 for days). The business hours of Deterministic_offset_W assume 7.
+            datetime_offset (int): Offset for timestamps in years after 1970. The simulation starts (t = 0) on the first Sunday of that year at 18:00, so the business hours fall on the same weekdays for every offset.
+            seed_value (int): Seed of all random streams (0 to 2**32 - 1). The same settings and seed give the same event-log.
+            custom_distributions(dict): (Default: None) Dictionary with filenames for custom initial probabilities, transition matrix and duration distribution. Example usage: {"p0":"data/p0.csv", "p":"data/p.csv","Lambda":"data/lambda.csv"}
+
+        All exponential parameters (inter_arrival_time, process_stability_scale, Lambda(d, t)) are means in days, the scale of numpy.
+
+        verbose (bool): print the progress
+        return_dgp (bool): (Default: False) also return the data-generating process of the log, see recover_dgp
+
+    Returns:
+        Pandas dataframe with the simulated event-log, or the tuple (event-log, dgp) with return_dgp
+
+    Raises:
+        ValueError: If a setting is missing or invalid. The message lists every problem found.
+    """
+
+    s = parse_settings(curr_settings)
+    custom_dist = s["custom_dist"]
+    seed_val = s["seed_value"]
+    statespace = s["statespace"]
+    number_of_traces = s["number_of_traces"]
+    process_entropy = s["process_entropy"]
+    process_type = s["process_type"]
+    process_memory = s["process_memory"]
+    num_transitions = s["num_transitions"]
+    p_abs_min = s["p_abs_min"]
+    kappa = s["kappa"]
+    max_len = s["max_len"]
+    time_settings = s["time_settings"]
+    datetime_offset = s["datetime_offset"]
+
+    if verbose==True:
+        print("seed:",seed_val)
+        if custom_dist is not None:
+            print("Using custom distributions:\n", custom_dist)
     
     import pandas as pd
     import numpy as np
@@ -318,7 +449,8 @@ def generate_eventlog(curr_settings, verbose=False):
                                                             D = statespace,
                                                             settings = time_settings, 
                                                             custom_distribution=custom_dist,
-                                                            seed_value=seed_val)
+                                                            seed_value=seed_val,
+                                                            n_positions=max_len)
     
     #loop over all the traces
     for i in list(range(0,len(Theta))):
@@ -385,6 +517,10 @@ def generate_eventlog(curr_settings, verbose=False):
     if verbose==True:
         print("events:",len(evlog_df))
         print("ids:",len(evlog_df.caseid.unique()))
+
+    if return_dgp:
+        return evlog_df, make_dgp(s, Phi, Lambd)
+
     return evlog_df
 
 ###########

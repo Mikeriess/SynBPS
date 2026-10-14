@@ -53,8 +53,7 @@ def test_med_entropy_absorption_reachable_from_every_state(statespace_size, n_tr
     D = make_D(statespace_size)
     
     for seed in range(300):
-        np.random.seed(seed)
-        P = Generate_transition_matrix_med_ent(D, n_tranitions=n_transitions).values
+        P = Generate_transition_matrix_med_ent(D, n_tranitions=n_transitions, seed_value=seed).values
         
         assert len(states_reaching_end(P)) == len(P)
         assert np.allclose(P.sum(axis=1), 1)
@@ -109,8 +108,7 @@ def test_kappa_default_and_effect():
     #the sum of the last column (absorption, incl. the absorption state itself) is at least kappa
     for kappa in [1, 2, 3, 3.5]:
         for seed in range(50):
-            np.random.seed(seed)
-            P = Generate_transition_matrix_med_ent(D, n_tranitions=3, kappa=kappa).values
+            P = Generate_transition_matrix_med_ent(D, n_tranitions=3, kappa=kappa, seed_value=seed).values
             assert P[:, -1].sum() >= kappa - 1e-9
             assert np.allclose(P.sum(axis=1), 1)
     
@@ -199,3 +197,41 @@ def test_resource_availability_mode():
         generate_eventlog(dict(settings, resource_availability_mode="none"))
     with pytest.raises(ValueError, match="resource_availability_mode"):
         Resource_offset(m=m, p=p, n=n, rng=make_rng(1, "resource"), mode="none")
+
+
+def test_entropy_ladder_and_memory_order():
+    """
+    The entropy levels form a ladder (issue 48): with max_entropy the control-flow is the same for every
+    memory order, and with med_entropy and every transition possible (statespace_size + 1) the memory
+    order matters, with every transition possible from every context
+    """
+    import warnings
+    import numpy as np
+    from SynBPS.simulation.simulate_eventlog import generate_eventlog, recover_dgp
+    
+    def activities(process_entropy, process_memory, **overrides):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            log = generate_eventlog(eventlog_settings(process_type="memory", process_entropy=process_entropy, 
+                                                      process_memory=process_memory, number_of_traces=100, **overrides))
+        return log.activity.tolist()
+    
+    #max_entropy: the uniform extreme, the same log for every order
+    assert activities("max_entropy", 1) == activities("max_entropy", 2) == activities("max_entropy", 3)
+    
+    #med_entropy with every transition possible: the order matters
+    n = 6  #statespace_size 5 plus the absorption state
+    assert activities("med_entropy", 1, med_ent_n_transitions=n) != activities("med_entropy", 2, med_ent_n_transitions=n)
+    assert activities("med_entropy", 2, med_ent_n_transitions=n) != activities("med_entropy", 3, med_ent_n_transitions=n)
+    
+    #and every transition is possible from every context, with random weights
+    dgp = recover_dgp(eventlog_settings(process_type="memory", process_entropy="med_entropy", process_memory=2, med_ent_n_transitions=n))
+    for k, table in dgp["Phi"].items():
+        for context, row in table.items():
+            assert (row > 0).all()
+            assert not np.allclose(row, row[0])
+    
+    #whereas max_entropy rows are uniform
+    dgp = recover_dgp(eventlog_settings(process_type="memory", process_entropy="max_entropy", process_memory=1))
+    for context, row in dgp["Phi"][1].items():
+        assert np.allclose(row, 1/len(dgp["D_abs"]))

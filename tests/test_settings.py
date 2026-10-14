@@ -215,3 +215,23 @@ def test_activity_names():
     #the largest statespace works end to end
     log = generate_eventlog(eventlog_settings(statespace_size=29, process_type="memoryless", process_entropy="max_entropy", number_of_traces=50))
     assert set(log.activity.unique()) <= set(make_D(29))
+
+
+def test_max_entropy_with_memory_warns():
+    """
+    max_entropy is the uniform extreme, where process_memory has no effect: check_settings warns when the
+    order is above 1 (issue 48), and not for the other levels, for order 1, or for the memoryless process
+    """
+    import warnings
+    from SynBPS.simulation.simulate_eventlog import check_settings
+    
+    with pytest.warns(UserWarning, match="process_memory has no effect with max_entropy"):
+        check_settings(eventlog_settings(process_type="memory", process_entropy="max_entropy", process_memory=2))
+    
+    for overrides in [dict(process_type="memory", process_entropy="max_entropy", process_memory=1),
+                      dict(process_type="memory", process_entropy="med_entropy", process_memory=2),
+                      dict(process_type="memory", process_entropy="min_entropy", process_memory=2),
+                      dict(process_type="memoryless", process_entropy="max_entropy", process_memory=2)]:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            check_settings(eventlog_settings(**overrides))

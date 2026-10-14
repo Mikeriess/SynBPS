@@ -354,9 +354,8 @@ def test_memoryless_n_transitions():
     
     #n to n+1 non-zero entries per row (alg 5 can add the absorption state), and the absorption state is absorbing
     for n in [2,3,5]:
-        np.random.seed(3)
         Theta, Phi = Process_without_memory(D=D, mode="med_entropy", num_traces=50, num_transitions=n, seed_value=3)
-        P = Phi[1]
+        P = Phi["P"]
         for state in D:
             assert n <= np.sum(P.loc[state].values > 0) <= n+1
         assert P.loc["END", "END"] == 1
