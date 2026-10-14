@@ -18,9 +18,9 @@ You can install SynBPS using pip:
 ### Installing a specific version from GitHub
 A release can also be installed directly from GitHub, for example when a new release is not yet available on PyPI:
 
-    pip install git+https://github.com/Mikeriess/SynBPS.git@v1.1.9
+    pip install git+https://github.com/Mikeriess/SynBPS.git@v1.2.0
 
-Replace ```v1.1.9``` with the tag of the release you need (see the [releases page](https://github.com/Mikeriess/SynBPS/releases)). This requires git to be installed on your machine. Each release also carries the built wheel file (```.whl```) as an asset, which can be installed with ```pip install <path or URL of the wheel file>``` without git.
+Replace ```v1.2.0``` with the tag of the release you need (see the [releases page](https://github.com/Mikeriess/SynBPS/releases)). This requires git to be installed on your machine. Each release also carries the built wheel file (```.whl```) as an asset, which can be installed with ```pip install <path or URL of the wheel file>``` without git.
 
 Once installed, you can:
 

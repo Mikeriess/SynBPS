@@ -36,7 +36,7 @@ You can install SynBPS using pip::
 
 A specific release can also be installed directly from GitHub, for example when a new release is not yet available on PyPI (this requires git)::
 
-    pip install git+https://github.com/Mikeriess/SynBPS.git@v1.1.9
+    pip install git+https://github.com/Mikeriess/SynBPS.git@v1.2.0
 
 Then continue with one of the following pages:
 
@@ -47,7 +47,7 @@ Then continue with one of the following pages:
 
 The example notebooks in the `examples folder on GitHub <https://github.com/Mikeriess/SynBPS/tree/main/examples>`_ contain the same code as these pages.
 
-The changes in each version are listed in the `README on GitHub <https://github.com/Mikeriess/SynBPS#whats-new-version-119>`_ and on the `releases page <https://github.com/Mikeriess/SynBPS/releases>`_. Note that event-logs generated with version 1.1.9 differ from those of earlier versions for the same seed value, as several parts of the simulation were not reproducible from the seed before.
+The changes in each version are listed on the `releases page <https://github.com/Mikeriess/SynBPS/releases>`_. Note that event-logs generated with version 1.2.0 differ from those of 1.1.9 for the same seed value (activity names, timestamps and the medium entropy process), and those of 1.1.9 from earlier versions, as several parts of the simulation were not reproducible from the seed before.
 
 
 Citation
