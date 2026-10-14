@@ -9,6 +9,8 @@ def check_settings(curr_settings):
         ValueError: One line per problem found, each ending with the setting to change.
     """
 
+    import warnings
+
     # problems found so far
     problems = []
 
@@ -91,6 +93,10 @@ def check_settings(curr_settings):
         process_memory = number("process_memory")
         if process_memory is not None and not in_range(process_memory, 1, float("inf")):
             problems.append("process_memory must be 1 or larger for the process with memory, but is " + str(process_memory) + ". Change process_memory.")
+
+        # max_entropy is the uniform row from every context, so the control-flow is the same for every order
+        if process_entropy == "max_entropy" and process_memory is not None and process_memory > 1:
+            warnings.warn("process_memory has no effect with max_entropy: every transition is equally likely from every context, so the control-flow is the same for every order. Use med_entropy with med_ent_n_transitions = statespace_size + 1 for a process where every transition is possible and the memory order matters.")
 
         p_abs_min = number("p_abs_min")
         if p_abs_min is not None and not in_range(p_abs_min, 0, 1, high_included=False):
@@ -347,9 +353,9 @@ def generate_eventlog(curr_settings, verbose=False, return_dgp=False):
     Args:
         curr_settings (dict): A dictionary containing the following keys:
             number_of_traces (int): Number of traces/cases in the event log.
-            process_entropy (str): Level of entropy. Options: "min_entropy", "med_entropy", "max_entropy" or "custom" for custom_distribution (see below).
+            process_entropy (str): Level of entropy. Options: "min_entropy" (one deterministic trace), "med_entropy" (med_ent_n_transitions possible transitions from each state, with random weights), "max_entropy" (every transition equally likely from every state, the uniform extreme) or "custom" for custom_distribution (see below). The levels form a ladder: min_entropy, med_entropy with 2 up to every transition, max_entropy.
             process_type (str): Type of Markov chain. Options: "memoryless", "memory".
-            process_memory (int): Order of the Higher-Order Markov Chain (HOMC). Only used when process_type is "memory".
+            process_memory (int): Order of the Higher-Order Markov Chain (HOMC). Only used when process_type is "memory". With max_entropy the next activity does not depend on the previous ones, so the order has no effect (a warning is given); the highest level where the order matters is med_entropy with med_ent_n_transitions = statespace_size + 1.
             p_abs_min (float): (Default: 0.05) Minimum probability of ending the trace from any state. Only used when process_type is "memory" and process_entropy is "med_entropy" or "max_entropy". A value of 0 removes the guarantee that every trace ends.
             max_len (int): (Default: 10000) Maximum number of events in a trace, after which an exception is raised.
             statespace_size (int): Number of activity types (2 to 29). The activities are named with the letters a, b, c, ...

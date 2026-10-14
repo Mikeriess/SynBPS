@@ -12,7 +12,7 @@ A single event-log is generated with ``generate_eventlog``, which takes a dictio
                     "number_of_traces":1000,
 
                     # level of entropy: min, medium and/or max
-                    "process_entropy": "max_entropy",# "min_entropy","med_entropy","max_entropy"
+                    "process_entropy": "med_entropy",# "min_entropy","med_entropy","max_entropy"
 
                     # first or higher-order markov chain to represent the transitions "memoryless", "memory"
                     "process_type":"memory",#"memoryless",
@@ -134,7 +134,7 @@ With ``process_type = "memory"``, the next activity depends on the last ``proces
 
 ``HOMC["Phi"]`` holds one table per order 1 to k. ``Phi[i]`` maps every context of ``i`` activities to a probability vector over the activities plus the absorption state ``END``. The first events of a trace, which have fewer than k previous activities, use the table of their own length. In every context the probability of ``END`` is at least ``p_abs_min``, which guarantees that every trace ends.
 
-With ``min_entropy`` the process is one deterministic trace, with ``med_entropy`` each context has ``med_ent_n_transitions`` possible next activities, and with ``max_entropy`` every transition is equally likely from every context (so ``process_memory`` has no effect on the control-flow at this level).
+With ``min_entropy`` the process is one deterministic trace, with ``med_entropy`` each context has ``med_ent_n_transitions`` possible next activities with random weights, and with ``max_entropy`` every transition is equally likely from every context. The levels form a ladder: ``min_entropy``, then ``med_entropy`` with 2 up to ``statespace_size`` + 1 transitions, then ``max_entropy``. ``max_entropy`` is the uniform extreme, where the next activity does not depend on the previous ones: ``process_memory`` has no effect on the control-flow at this level, and ``check_settings`` warns when it is above 1. The highest level where every transition is possible and the memory order matters is ``med_entropy`` with ``med_ent_n_transitions`` = ``statespace_size`` + 1.
 
 Reproducibility
 ------------------
