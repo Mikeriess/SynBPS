@@ -155,3 +155,84 @@ def test_design_table_without_statespace_size(tmp_path):
     results = run_experiments(dataprep, training, evaluation, output_dir=str(tmp_path) + "/")
     assert results.RUN.tolist() == [1, 2, 3, 4]
     assert results.metric.tolist() == [20, 20, 20, 20]
+
+
+def test_user_functions_receive_the_settings(tmp_path):
+    """
+    A user function which declares a settings argument (or **kwargs) receives the row of the design
+    table, and a function without it is called as before (issue 42)
+    """
+    from SynBPS.simulation.simulation_pipeline import run_experiments
+    
+    out = str(tmp_path) + "/"
+    design_table(tmp_path, seeds=[11, 12])
+    received = []
+    
+    def dataprep_with_settings(log, settings=None):
+        received.append(("dataprep", settings))
+        return log
+    
+    def training_with_kwargs(data, **kwargs):
+        received.append(("training", kwargs["settings"]))
+        return training(data)
+    
+    results = run_experiments(dataprep_with_settings, training_with_kwargs, evaluation, output_dir=out)
+    assert results.RUN.tolist() == [1, 2]
+    
+    #both functions received the settings of both runs, in order
+    assert [name for name, _ in received] == ["dataprep", "training", "dataprep", "training"]
+    assert [settings["seed_value"] for _, settings in received] == [11, 11, 12, 12]
+    assert [settings["idx"] for _, settings in received] == [0, 0, 1, 1]
+    
+    #the settings are the row of the design table, without the characteristics of the event-log
+    settings = received[0][1]
+    assert isinstance(settings, dict)
+    assert settings["process_type"] == "memoryless"
+    assert settings["RUN"] == 1
+    assert "num_events" not in settings
+
+
+def test_training_function_recovers_the_process_from_the_settings(tmp_path):
+    """
+    The settings are what a training function needs to recover the data generating process:
+    the transition tables of the process with memory, recovered with create_homc, give a positive
+    probability to every transition of the event-log (issue 42)
+    """
+    from SynBPS.design.DoE import make_design_table
+    from SynBPS.simulation.simulation_pipeline import run_experiments
+    
+    base = eventlog_settings(process_type="memory", process_memory=2, number_of_traces=30)
+    factors = {key: [value] for key, value in base.items()}
+    factors["seed_value"] = [21, 22]
+    make_design_table(factors).to_csv(tmp_path / "design_table.csv", index=False)
+    
+    def training_from_process(log, settings=None):
+        from SynBPS.simulation.simulation_helpers import make_D
+        from SynBPS.simulation.alg7_memory_process_generator import create_homc
+        
+        homc = create_homc(D=make_D(int(settings["statespace_size"])),
+                           K=int(settings["process_memory"]),
+                           mode=settings["process_entropy"],
+                           n_transitions=int(settings["med_ent_n_transitions"]),
+                           p_abs_min=float(settings["p_abs_min"]),
+                           seed_value=int(settings["seed_value"]))
+        
+        #the probability of every observed transition under the recovered process
+        probabilities = []
+        for _, trace in log.groupby("caseid", sort=False):
+            activities = trace.activity.tolist() + ["END"]
+            for t in range(1, len(activities)):
+                i = min(t, homc["K"])
+                context = tuple(activities[t-i:t])
+                probabilities.append(homc["Phi"][i][context][homc["D_abs"].index(activities[t])])
+        
+        import pandas as pd
+        return pd.DataFrame({"p": probabilities})
+    
+    def evaluation_min_p(inference):
+        return {"min_p": inference.p.min(), "transitions": len(inference)}
+    
+    results = run_experiments(dataprep, training_from_process, evaluation_min_p, output_dir=str(tmp_path) + "/")
+    assert results.RUN.tolist() == [1, 2]
+    assert (results.min_p > 0).all()
+    assert (results.transitions == results.num_events).all()
