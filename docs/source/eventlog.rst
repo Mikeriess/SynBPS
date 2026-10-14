@@ -138,11 +138,13 @@ With ``min_entropy`` the process is one deterministic trace, with ``med_entropy`
 
 Reproducibility
 ------------------
-Every random draw of the simulation is derived from ``seed_value``. Each component (the transition tables, the sampling of the traces, the arrival times, the duration parameters, the resource offsets, the stability offsets and the activity durations) has its own random stream, which gives the following properties:
+Every random draw of the simulation is derived from ``seed_value``. Each component (the transition tables, the sampling of the traces, the arrival times, the duration parameters, the resource offsets, the stability offsets and the activity durations) has its own random stream, for both process types, and the global stream of numpy is not used. This gives the following properties:
 
 * Two calls with the same settings give the same event-log, in every column.
 * The first traces of an event-log do not change when ``number_of_traces`` is increased: a larger log is a larger sample from the same process.
 * Changing one setting only changes the draws of the component which uses it. For example, changing ``resource_availability_p`` leaves the activities, the arrival times, the stability offsets and the activity durations unchanged, and only changes the resource offsets ``h_t`` and everything derived from them.
+* Random draws made by other code, such as ``numpy.random`` calls in a model or in a library, do not change the event-log, and a simulation does not change the state of ``numpy.random``.
+* The transition tables can be recovered from the seed without generating a log: ``create_homc`` for the process with memory, and ``Process_without_memory`` with ``num_traces=0`` for the memoryless process (``Phi`` holds P0 and P).
 
 Custom distributions
 ----------------------

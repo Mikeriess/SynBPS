@@ -10,10 +10,12 @@ Generation of transition matrix: Maximum entropy
 """
 
 
-def Generate_transition_matrix_max_ent(D = ["a","b","c"], seed_value=1337):
+def Generate_transition_matrix_max_ent(D = ["a","b","c"], seed_value=1337, rng=None):
+    """
+    Transition matrix with equal probabilities for every transition (alg. 4). Nothing is drawn,
+    so seed_value and rng have no effect; they are accepted for the same signature as alg. 3 and 5.
+    """
     import numpy as np
-    #np.random.seed(seed_value) 
-
     import pandas as pd
     
     # Example P0 is one-hot
