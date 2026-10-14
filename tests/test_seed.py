@@ -83,7 +83,7 @@ def test_memoryless_process_uses_its_seed():
     Theta2, Phi2 = Process_without_memory(D=D, mode="med_entropy", num_traces=20, num_transitions=3, seed_value=9)
     
     assert Theta1 == Theta2
-    assert Phi1[1].equals(Phi2[1])
+    assert Phi1["P"].equals(Phi2["P"])
 
 
 def test_make_rng_streams():
@@ -155,8 +155,8 @@ def test_memoryless_tables_independent_of_num_traces():
     for mode in ["min_entropy", "med_entropy", "max_entropy"]:
         Theta_small, Phi_small = Process_without_memory(D=D, mode=mode, num_traces=5, num_transitions=3, seed_value=8)
         Theta_big, Phi_big = Process_without_memory(D=D, mode=mode, num_traces=20, num_transitions=3, seed_value=8)
-        assert list(Phi_small[0]) == list(Phi_big[0])
-        assert Phi_small[1].equals(Phi_big[1])
+        assert list(Phi_small["P0"]) == list(Phi_big["P0"])
+        assert Phi_small["P"].equals(Phi_big["P"])
         assert Theta_big[:5] == Theta_small
 
 
