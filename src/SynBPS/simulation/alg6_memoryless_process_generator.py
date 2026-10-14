@@ -30,7 +30,9 @@ def Process_without_memory(D = ["a","b","c","d","e"],
     Returns
     -------
     Theta : list of traces, each ending with the absorption state END
-    Phi : list with the initial probabilities P0 and the transition matrix P
+    HOMC : dict with the process in the structure of create_homc (the process with memory, of order K = 1):
+        D, D_abs, P0 (array over D), Phi ({1: {(d,): probability vector over D_abs}}), K, mode,
+        and P, the transition matrix as a dataframe with the rows and columns D_abs
     """
 
     import numpy as np
@@ -97,8 +99,15 @@ def Process_without_memory(D = ["a","b","c","d","e"],
         P.index = D_abs
 
     
-    # Transition matrices
-    Phi = [P0, P]
+    # the process in the structure of create_homc: Phi[1][(d,)] is the row of d, as for a HOMC of order 1
+    P0 = np.asarray(P0, dtype=float)
+    HOMC = {"D":D, 
+            "D_abs":D_abs, 
+            "P0":P0, 
+            "Phi":{1: {(d,): P.loc[d].values.astype(float) for d in D}}, 
+            "K":1, 
+            "mode":mode, 
+            "P":P}
         
     for trace in list(range(0,repetitions)):
             
@@ -131,4 +140,4 @@ def Process_without_memory(D = ["a","b","c","d","e"],
         #print("trace:",sigma)
 
         Theta.append(sigma)
-    return Theta, Phi
+    return Theta, HOMC

@@ -36,9 +36,29 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
                                                           6.5]], 
                                       "Deterministic_offset_u":7}, 
                                       custom_distribution=None,
-                                      seed_value=1337):
+                                      seed_value=1337,
+                                      n_positions=None):
+    """
+    Generates the time variables of every event of the traces in Theta (alg. 9).
+
+    Parameters
+    ----------
+    Theta : list of traces, each ending with the absorption state END
+    D : statespace (without absorption state)
+    settings : the time settings, see the defaults above
+    custom_distribution : dict with the file Lambda (custom distributions only)
+    seed_value : seed of the random streams
+    n_positions : number of rows (positions in the trace) of Lambda. Defaults to the length of the
+        longest trace. A larger number makes Lambda a complete parameter of the process (one row per
+        possible position) without changing the durations, as the rows are drawn in order
+
+    Returns
+    -------
+    Y_table : list with the time variables of every trace
+    Lambd : dataframe of the mean activity durations, one row per position and one column per activity
+    theta_time : the arrival times
+    """
     import numpy as np
-    #np.random.seed(seed_value)
     import pandas as pd
     
     from SynBPS.simulation.Duration.duration_helpers import Generate_lambdas, Resource_offset, TimeSinceMonday, Deterministic_offset
@@ -66,10 +86,15 @@ def Generate_time_variables(Theta = [["a","b","END"],                   #the gen
     # for lambdas
     max_trace_length = max(len(x) for x in Theta)
     
+    if n_positions is None:
+        n_positions = max_trace_length
+    if n_positions < max_trace_length:
+        raise ValueError("n_positions must be at least the length of the longest trace, which is " + str(max_trace_length) + ".")
+    
     # Generate duration distributions (unless custom distributions are given)
     if custom_distribution is None:
         Lambd = Generate_lambdas(D=D, 
-                                 t=max_trace_length, 
+                                 t=n_positions, 
                                  lambd_range=settings["activity_duration_lambda_range"],
                                  seed_value=seed_value)
     
