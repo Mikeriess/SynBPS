@@ -14,6 +14,12 @@ def run_experiments(dataprep_function, training_function, eval_function, store_e
     A run which raises an exception is marked with Failure = 1 in the design table (Done stays 0), the error is
     printed, and the experiment continues with the next run. Calling the function again retries the failed runs.
 
+    Each of the three functions can declare an optional keyword argument named settings (or **kwargs). It then
+    receives the settings of the run: the row of the design table as a dictionary, with idx as the index of the
+    run. A function without the argument is called with its input only, as before. The settings are what a
+    training function needs to recover the data generating process, for example with create_homc
+    (SynBPS.simulation.alg7_memory_process_generator) for the process with memory.
+
     Args:
         dataprep_function: function which takes the event-log (pandas dataframe) and returns the input data for training_function
         training_function: function which takes the input data and returns the inference table (pandas dataframe) for eval_function
@@ -112,6 +118,31 @@ def run_experiments(dataprep_function, training_function, eval_function, store_e
     return collect_results()
 
 
+def accepts_settings(function):
+    """
+    Whether a user function takes the settings of the run: it has a parameter named settings, or **kwargs.
+    Functions whose signature cannot be read (some built-in callables) are called without the settings.
+    """
+    import inspect
+
+    try:
+        parameters = inspect.signature(function).parameters.values()
+    except (TypeError, ValueError):
+        return False
+
+    return any(p.name == "settings" or p.kind == p.VAR_KEYWORD for p in parameters)
+
+
+def call_user_function(function, argument, settings):
+    """
+    Calls a user function with its input, and with the settings of the run when it accepts them
+    """
+    if accepts_settings(function):
+        return function(argument, settings=settings)
+
+    return function(argument)
+
+
 def perform_run(run, curr_settings, dataprep_function, training_function, eval_function, store_eventlogs, output_dir, verbose):
     """
     Performs a single run of the design table: generates the event-log, trains and evaluates the model.
@@ -127,6 +158,10 @@ def perform_run(run, curr_settings, dataprep_function, training_function, eval_f
     import pandas as pd
     import numpy as np
     import time
+
+    # the settings of the run as given to the user functions: the row of the design table, before the
+    # characteristics of the event-log are added to curr_settings below
+    settings = curr_settings.to_dict()
 
     start_time = time.time()
 
@@ -211,14 +246,14 @@ def perform_run(run, curr_settings, dataprep_function, training_function, eval_f
     Prepare data for modelling (memory here refers to RAM)
     """
 
-    input_data = dataprep_function(log)
+    input_data = call_user_function(dataprep_function, log, settings)
 
     """
     Train a model
     """
 
     ### Custom training function
-    inference_test = training_function(input_data)
+    inference_test = call_user_function(training_function, input_data, settings)
 
     if store_eventlogs==True:
         # store inference table
@@ -229,7 +264,7 @@ def perform_run(run, curr_settings, dataprep_function, training_function, eval_f
     """
 
     ### Custom evaluation function
-    metrics = eval_function(inference_test)
+    metrics = call_user_function(eval_function, inference_test, settings)
 
     ### Store metrics to the in curr_settings dictionary which becomes the result table
     ### Prefixing column names is ideal for later analysis

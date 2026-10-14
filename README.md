@@ -67,7 +67,7 @@ Some properties of the simulation which are useful to know when building on SynB
 - All parameters of exponential distributions are means, in days: ```inter_arrival_time```, ```process_stability_scale``` and the mean activity durations ```Lambda(d, t)``` drawn up to ```activity_duration_lambda_range```. This is the scale parameter of numpy. The paper writes the exponential distribution with a rate λ in eq. 7, eq. 18 and alg. 1, and the rate is 1 divided by the setting. The expected throughput time of a trace (eq. 25) is therefore the sum of the mean durations and offsets of its events.
 - The transition tables of the process with memory can be recovered from the seed with ```create_homc``` (```SynBPS.simulation.alg7_memory_process_generator```), independent of ```number_of_traces```. A prefix shorter than ```process_memory``` uses the table of its own length.
 - ```number_of_traces``` is not the number of events: the trace length depends on the entropy level, ```statespace_size```, ```med_ent_n_transitions```, ```p_abs_min``` and ```process_memory```.
-- ```run_experiments``` does not pass the settings to the training function. A training function which needs the data generating process must recover it from the seed.
+- ```run_experiments``` passes the settings of the run to every user function which declares a ```settings``` keyword argument, as the row of the design table. A training function which needs the data generating process recovers it from them, for example with ```create_homc```. See the documentation of the example.
 
 
 ## Citation
