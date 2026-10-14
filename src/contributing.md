@@ -31,7 +31,7 @@ Individual environments can be selected, for example `tox -e py311` or `tox -e b
 ## Releasing a new version to PyPI
 Merging to `main` does **not** publish anything. A release is triggered manually:
 
-1. Bump `version` in `pyproject.toml` and update the "Whats new" section in `README.md` in a pull request, and merge it.
+1. Bump `version` in `pyproject.toml` and update the "What's new" section in `README.md` in a pull request, and merge it.
 2. On GitHub, open *Releases*, choose *Draft a new release*, create a tag named `v<version>` (for example `v1.2.0`) on `main`, and publish the release.
 3. The *Publish package to PyPI* workflow (`.github/workflows/publish.yml`) checks that the tag matches the version in `pyproject.toml`, runs the tests, builds the package, attaches the sdist and wheel to the GitHub release, and uploads them to PyPI.
 

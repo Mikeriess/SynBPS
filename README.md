@@ -18,9 +18,9 @@ You can install SynBPS using pip:
 ### Installing a specific version from GitHub
 A release can also be installed directly from GitHub, for example when a new release is not yet available on PyPI:
 
-    pip install git+https://github.com/Mikeriess/SynBPS.git@v1.2.0
+    pip install git+https://github.com/Mikeriess/SynBPS.git@v1.2.1
 
-Replace ```v1.2.0``` with the tag of the release you need (see the [releases page](https://github.com/Mikeriess/SynBPS/releases)). This requires git to be installed on your machine. Each release also carries the built wheel file (```.whl```) as an asset, which can be installed with ```pip install <path or URL of the wheel file>``` without git.
+Replace ```v1.2.1``` with the tag of the release you need (see the [releases page](https://github.com/Mikeriess/SynBPS/releases)). This requires git to be installed on your machine. Each release also carries the built wheel file (```.whl```) as an asset, which can be installed with ```pip install <path or URL of the wheel file>``` without git.
 
 Once installed, you can:
 
@@ -28,7 +28,43 @@ Once installed, you can:
 - Or simply generate a single event-log using the example code in the [Event-log example notebook](https://github.com/Mikeriess/SynBPS/blob/main/examples/event_log_example.ipynb). This code example also lets you integrate the power of SynBPS into your own custom code pipeline (for advanced users).
 - For the memoryless process, you can also specify the parameters of the distributions manually as shown in the [Custom distribution Event-log example notebook](https://github.com/Mikeriess/SynBPS/blob/main/examples/event_log_example_custom_dist.ipynb).
 
+## What's new
 
+### Version 1.2.1
+All changes since 1.1.9. The tag `v1.2.0` carries the version string 1.1.9 and was not published; 1.2.1 is the release of these changes. Event-logs generated with 1.2.1 differ from those of 1.1.9 for the same seed, see the first list.
+
+**Changes which affect generated event-logs and prepared data**
+
+- Activities are named a, b, c, ... (up to 1.1.9: b, c, d, ...), and the largest state space is 29. Only the names shift by one letter (#21).
+- Timestamps are counted from the first Sunday of the year 1970 + `datetime_offset` at 18:00, so the business hours fall on the same weekdays for every offset. Seconds are rounded (#17).
+- The absorption state is reachable from every state of the memoryless `med_entropy` process, so every trace ends (#18).
+- The memoryless process draws from its own random streams instead of the global numpy stream, so its logs change once for the same seed. The process with memory and the arrival times are unchanged (#51).
+- The default split of `prefix_data`, `split_by="cases"`, puts `trainsize` of the cases in the train set; `split_by="date"` gives the rule of 1.1.9 (#43).
+- `event_number` counts the events of a case from 1, and the inference tables get the column `log_caseid` (#5).
+
+**New**
+
+- `recover_dgp(settings)` returns the data-generating process (P0, Phi, Lambda and the time settings) without generating the log, and `generate_eventlog(settings, return_dgp=True)` returns it with the log. Both process types return Phi in the same structure, and Lambda has a row for every position up to `max_len` (#49).
+- `run_experiments` passes the settings of the run to every user function which declares a `settings` keyword argument (#42), keeps the results of earlier calls when an experiment is continued, and marks failed runs with `Failure = 1` instead of stopping (#19).
+- `split_cases` assigns the cases to the train and test set and returns one row per case; `prefix_data` returns it as `data["cases"]` and takes it back as `case_sets`. New parameters `spanning_cases`, `split_date`, `drop_single_event_cases` and `include_end` (#43).
+- `prefix_data` takes extra features from the log (`category_cols`, `numeric_cols`), one-hot time features and `scaling` (#5), and is vectorized: under a second instead of 27 seconds for 150 traces, with identical output (#35).
+- `med_ent_kappa` (kappa of alg. 5, default 2) and `resource_availability_mode` (`all_requests`, the default, or `failed_requests` as in alg. 8) can be set (#25, #23). `max_len` applies to both process types, and the settings are validated before a simulation starts (#18).
+- `check_settings` warns when `max_entropy` is combined with a memory order above 1, as the order has no effect at the uniform extreme. The ladder of the entropy levels is documented (#48).
+- Documentation of the data preparation (steps, split rules, features, targets, inference tables, all parameters), of the data-generating process, and of the exponential parameters as means in days (#24).
+
+**Fixed**
+
+- `make_design_table` raised when `statespace_size` was not a factor of the design (#41).
+
+**Removed**
+
+- `SynBPS.dataprep.transformer_loader`, which could not be imported and required tensorflow (#36), the unused design functions of `dataprep_helperfunctions` (#37), the unused `standardize` argument of `PadInputs` and `Get_steps` of alg. 5.
+
+**Compatibility**
+
+- Python 3.9 to 3.13; pandas 3 and numpy 2.3 are supported (#22).
+
+The changes of earlier versions are listed on the [releases page](https://github.com/Mikeriess/SynBPS/releases).
 
 ## Documentation
 See the [official documentation here](https://synbps.readthedocs.io/en/latest/). The [dataprep page](https://synbps.readthedocs.io/en/latest/dataprep.html) describes ```prefix_data```, which turns an event-log into a prefix-log with features and targets for a model, and ```split_cases```, which assigns the cases to the train and test set by time.
