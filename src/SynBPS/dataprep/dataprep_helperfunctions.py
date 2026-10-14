@@ -8,10 +8,10 @@ import pandas as pd
 import numpy as np
 
 
-def InitialFormatting(df, maxcases, dateformat, verbose=False):
+def InitialFormatting(df, maxcases, dateformat, drop_single_event_cases=True, verbose=False):
     """
-    Keeps the first maxcases cases, drops the cases with a single event, keeps the caseid of the log in log_caseid,
-    renumbers the cases 1, 2, 3, ... and sorts the events by case and time
+    Keeps the first maxcases cases, drops the cases with a single event (when drop_single_event_cases is True),
+    keeps the caseid of the log in log_caseid, renumbers the cases 1, 2, 3, ... and sorts the events by case and time
     """
     import pandas as pd
     
@@ -19,19 +19,20 @@ def InitialFormatting(df, maxcases, dateformat, verbose=False):
     casestoload = df["id"].unique().tolist()[0:maxcases]
     df = df.loc[df["id"].isin(casestoload)].copy()
     
-    if verbose == True:
-        # find cases to drop due to length
-        print("Cases before dropping len=1:",len(casestoload),"cases",len(df),"rows")
-    
-    # Make list of cases above length 1
-    sizes = df.groupby('id').size()
-    keepers = sizes[sizes > 1].index.tolist()
-
-    # Drop cases with only one event:
-    df = df.loc[df["id"].isin(keepers)].copy()
-    
-    if verbose == True:
-        print("Cases after dropping len=1:",len(keepers),"cases",len(df),"rows")
+    if drop_single_event_cases:
+        if verbose == True:
+            # find cases to drop due to length
+            print("Cases before dropping len=1:",len(casestoload),"cases",len(df),"rows")
+        
+        # Make list of cases above length 1
+        sizes = df.groupby('id').size()
+        keepers = sizes[sizes > 1].index.tolist()
+        
+        # Drop cases with only one event:
+        df = df.loc[df["id"].isin(keepers)].copy()
+        
+        if verbose == True:
+            print("Cases after dropping len=1:",len(keepers),"cases",len(df),"rows")
     
     #keep the caseid of the log, as the cases get new consecutive ids below
     df["log_caseid"] = df["id"]
@@ -626,7 +627,11 @@ def GetCaseStats(df, padded_df, CaseData, y_t, y_a, y, prefixwindow=0, dateforma
     events["prefix_date"] = events["time_parsed"].dt.strftime(dateformat)
     output = pd.merge(left=output, right=events[["caseid","prefix_number","prefix_date"]], on=["caseid","prefix_number"], how="left")
     
-    output["prefixes"] = output["num_events"]-1
+    #the number of observations of the case: every event, or every event but the last
+    if drop_last_ev:
+        output["prefixes"] = output["num_events"]-1
+    else:
+        output["prefixes"] = output["num_events"]
     output["prefixwindow"] = prefixwindow
     
     #select what is interesting:
