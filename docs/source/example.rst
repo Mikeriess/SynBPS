@@ -89,7 +89,7 @@ Every setting is given as a list of the levels to be simulated, and the design t
 
 2. **Specify dataprep_function()**
 
-The data preparation turns the event-log of a run into the train and test sets of the model. It is a function which takes the event-log (a dataframe, see :doc:`eventlog` for its columns) and returns a dictionary. The helper ``prefix_data`` in ``SynBPS.dataprep.prepare`` builds a prefix-log with a temporal split (70 percent of the dates in the train set), which suits models that predict the remaining time from every observed event; its features, targets and options are described on the :doc:`dataprep` page. The example below instead keeps the first event of every trace only.
+The data preparation turns the event-log of a run into the train and test sets of the model. It is a function which takes the event-log (a dataframe, see :doc:`eventlog` for its columns) and returns a dictionary. The helper ``prefix_data`` in ``SynBPS.dataprep.prepare`` builds a prefix-log with a temporal split (70 percent of the cases in the train set), which suits models that predict the remaining time from every observed event; its features, targets and options are described on the :doc:`dataprep` page. The example below instead keeps the first event of every trace only.
 
 .. code-block:: python
 
