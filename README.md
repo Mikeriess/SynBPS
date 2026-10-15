@@ -18,17 +18,15 @@ You can install SynBPS using pip:
 ### Installing a specific version from GitHub
 A release can also be installed directly from GitHub, for example when a new release is not yet available on PyPI:
 
-    pip install git+https://github.com/Mikeriess/SynBPS.git@v1.1.9
+    pip install git+https://github.com/Mikeriess/SynBPS.git@v1.2.1
 
-Replace ```v1.1.9``` with the tag of the release you need (see the [releases page](https://github.com/Mikeriess/SynBPS/releases)). This requires git to be installed on your machine. Each release also carries the built wheel file (```.whl```) as an asset, which can be installed with ```pip install <path or URL of the wheel file>``` without git.
+Replace ```v1.2.1``` with the tag of the release you need (see the [releases page](https://github.com/Mikeriess/SynBPS/releases)). This requires git to be installed on your machine. Each release also carries the built wheel file (```.whl```) as an asset, which can be installed with ```pip install <path or URL of the wheel file>``` without git.
 
 Once installed, you can:
 
 - Run a simulation experiment with your own models using the [End-to-end example notebook](https://github.com/Mikeriess/SynBPS/blob/main/examples/simulation_e2e_example.ipynb) for a short demo of SynBPS. 
 - Or simply generate a single event-log using the example code in the [Event-log example notebook](https://github.com/Mikeriess/SynBPS/blob/main/examples/event_log_example.ipynb). This code example also lets you integrate the power of SynBPS into your own custom code pipeline (for advanced users).
 - For the memoryless process, you can also specify the parameters of the distributions manually as shown in the [Custom distribution Event-log example notebook](https://github.com/Mikeriess/SynBPS/blob/main/examples/event_log_example_custom_dist.ipynb).
-
-
 
 ## Documentation
 See the [official documentation here](https://synbps.readthedocs.io/en/latest/). The [dataprep page](https://synbps.readthedocs.io/en/latest/dataprep.html) describes ```prefix_data```, which turns an event-log into a prefix-log with features and targets for a model, and ```split_cases```, which assigns the cases to the train and test set by time.

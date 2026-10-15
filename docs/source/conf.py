@@ -9,7 +9,7 @@
 project = 'SynBPS'
 copyright = '2023-2026, Mike Riess'
 author = 'Mike Riess'
-release = '1.1.9'
+release = '1.2.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
